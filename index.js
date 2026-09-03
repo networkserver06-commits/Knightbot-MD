@@ -82,7 +82,7 @@ const pairingCode = process.env.PAIRING_CODE === 'true' || process.argv.includes
 const useMobile = process.env.USE_MOBILE === 'true' || process.argv.includes("--mobile")
 const authDir = process.env.AUTH_DIR || './session'
 
-if (pairingCode && !phoneNumber) {
+if (pairingCode && !phoneNumber && !process.stdin.isTTY) {
     console.error('PAIRING_CODE is enabled but PHONE_NUMBER is missing. Set PHONE_NUMBER in the Katabump panel.')
     process.exit(1)
 }
@@ -228,10 +228,12 @@ async function startXeonBotInc() {
         if (useMobile) throw new Error('Cannot use pairing code with mobile api')
 
         let phoneNumber
-        if (!!global.phoneNumber) {
+        if (process.stdin.isTTY) {
+            phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Enter WhatsApp phone number for pairing code:\nInclude country code digits, without +, spaces, or dashes.\nExample: 254116553618 or 254723456789\nNumber: `)))
+        } else if (!!global.phoneNumber) {
             phoneNumber = global.phoneNumber
         } else {
-            phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Please type your WhatsApp number 😍\nFormat: 254712345678 (without + or spaces) : `)))
+            phoneNumber = String(process.env.PHONE_NUMBER || settings.ownerNumber || phoneNumber)
         }
 
         // Clean the phone number - remove any non-digit characters
