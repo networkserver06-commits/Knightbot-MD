@@ -79,7 +79,13 @@ let owner = readJson('./data/owner.json', { owner: settings.ownerNumber || '' })
 global.botname = "LEE TECH BOT"
 global.themeemoji = "•"
 const pairingCode = process.env.PAIRING_CODE === 'true' || process.argv.includes("--pairing-code")
-const useMobile = process.argv.includes("--mobile")
+const useMobile = process.env.USE_MOBILE === 'true' || process.argv.includes("--mobile")
+const authDir = process.env.AUTH_DIR || './session'
+
+if (pairingCode && !phoneNumber) {
+    console.error('PAIRING_CODE is enabled but PHONE_NUMBER is missing. Set PHONE_NUMBER in the Katabump panel.')
+    process.exit(1)
+}
 
 // Only create readline interface if we're in an interactive environment
 const rl = process.stdin.isTTY ? readline.createInterface({ input: process.stdin, output: process.stdout }) : null
@@ -96,7 +102,10 @@ const question = (text) => {
 async function startXeonBotInc() {
     try {
         let { version, isLatest } = await fetchLatestBaileysVersion()
-        const { state, saveCreds } = await useMultiFileAuthState(`./session`)
+        // Auth files are generated automatically on first pairing. They do not
+        // need to be uploaded beforehand; keep AUTH_DIR on persistent panel
+        // storage if you want to avoid relinking after a restart.
+        const { state, saveCreds } = await useMultiFileAuthState(authDir)
         const msgRetryCounterCache = new NodeCache()
 
         const XeonBotInc = makeWASocket({
@@ -235,6 +244,7 @@ async function startXeonBotInc() {
         }
         setTimeout(async () => {
             try {
+                console.log(chalk.cyan(`Requesting WhatsApp pairing code for ${phoneNumber}...`))
                 let code = await XeonBotInc.requestPairingCode(phoneNumber)
                 code = code?.match(/.{1,4}/g)?.join("-") || code
                 console.log(chalk.black(chalk.bgGreen(`Your Pairing Code : `)), chalk.black(chalk.white(code)))

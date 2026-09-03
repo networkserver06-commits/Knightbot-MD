@@ -32,6 +32,19 @@ npm start
 
 The bot defaults to public mode and the `.` prefix. Change `BOT_MODE` and `PREFIX` in `.env` or use the bot’s owner settings where supported.
 
+## Katabump panel pairing deployment
+
+You do **not** need to upload a session file or configure `SESSION_ID`. Add these panel environment variables:
+
+```env
+PHONE_NUMBER=254XXXXXXXXX
+PAIRING_CODE=true
+USE_MOBILE=false
+AUTH_DIR=./session
+```
+
+Start the bot with `npm start`. It creates the auth directory automatically and prints a WhatsApp pairing code in the Katabump logs. Enter that code in WhatsApp under **Linked devices → Link a device → Link with phone number**. Once linked, leave the generated `AUTH_DIR` on persistent panel storage so the bot reconnects without relinking. If Katabump uses ephemeral storage, the bot still works, but you must generate a new code after every storage reset; no WhatsApp bot can stay linked across a deleted auth state without storing credentials somewhere.
+
 ## AI chatbot
 
 Configure an OpenAI-compatible endpoint, for example `AI_API_URL=https://api.openai.com/v1`, plus a private `AI_API_KEY`. Then an administrator can enable group replies with `.chatbot on`. The bot only responds when mentioned or when a user replies to the bot, which reduces unsolicited traffic. If no AI key is configured, the existing compatibility provider remains available.
