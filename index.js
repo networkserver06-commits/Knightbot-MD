@@ -54,6 +54,7 @@ ensureRuntimeDirs()
 store.readFromFile()
 const settings = require('./settings')
 setInterval(() => store.writeToFile(), settings.storeWriteInterval || 10000)
+let reconnectAttempts = 0
 
 // Memory optimization - Force garbage collection if available
 setInterval(() => {
@@ -258,6 +259,7 @@ async function startXeonBotInc() {
         }
         
         if (connection == "open") {
+            reconnectAttempts = 0
             console.log(chalk.magenta(` `))
             console.log(chalk.yellow(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
 
@@ -308,8 +310,10 @@ async function startXeonBotInc() {
             }
             
             if (shouldReconnect) {
-                console.log(chalk.yellow('Reconnecting...'))
-                await delay(5000)
+                reconnectAttempts += 1
+                const backoffMs = Math.min(60000, 5000 * (2 ** Math.min(reconnectAttempts - 1, 4)))
+                console.log(chalk.yellow(`Reconnecting in ${Math.ceil(backoffMs / 1000)}s (attempt ${reconnectAttempts})...`))
+                await delay(backoffMs)
                 startXeonBotInc()
             }
         }

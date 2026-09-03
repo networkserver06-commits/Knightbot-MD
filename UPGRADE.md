@@ -11,6 +11,8 @@ This release hardens the existing Baileys bot without removing its existing comm
 - **State writes made safer:** new runtime helpers support atomic JSON replacement and safe fallback reads, preventing partially-written state files.
 - **Deployment scripts corrected:** the Docker image command is valid, the project has a reproducible `package-lock.json`, and `npm run check` performs syntax and test validation.
 - **Runtime cleanup fixed:** temporary-file cleanup no longer calls `.catch()` on a non-Promise callback return.
+- **Premium AI chatbot:** `.chatbot on` can use any OpenAI-compatible provider through `AI_API_URL`, `AI_API_KEY`, and `AI_MODEL`, with timeout and bounded retry controls.
+- **Responsible anti-ban protection:** duplicate suppression, command throttling, bounded AI retries, and exponential reconnect backoff reduce accidental spam and connection churn. No bot can guarantee immunity from WhatsApp enforcement; use the official terms-compliant account and avoid bulk messaging.
 - **Privacy improved:** example owner and premium data files no longer contain personal phone numbers.
 
 ## Secure setup
@@ -29,6 +31,10 @@ npm start
 ```
 
 The bot defaults to public mode and the `.` prefix. Change `BOT_MODE` and `PREFIX` in `.env` or use the bot’s owner settings where supported.
+
+## AI chatbot
+
+Configure an OpenAI-compatible endpoint, for example `AI_API_URL=https://api.openai.com/v1`, plus a private `AI_API_KEY`. Then an administrator can enable group replies with `.chatbot on`. The bot only responds when mentioned or when a user replies to the bot, which reduces unsolicited traffic. If no AI key is configured, the existing compatibility provider remains available.
 
 ## Operations
 

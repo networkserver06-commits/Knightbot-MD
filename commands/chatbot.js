@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const fetch = require('node-fetch');
+const { configured: aiConfigured, generateChatCompletion } = require('../lib/ai_provider');
 
 const USER_GROUP_DATA = path.join(__dirname, '../data/userGroupData.json');
 
@@ -48,22 +49,22 @@ async function showTyping(sock, chatId) {
 // Extract user information from messages
 function extractUserInfo(message) {
     const info = {};
-    
+
     // Extract name
     if (message.toLowerCase().includes('my name is')) {
         info.name = message.split('my name is')[1].trim().split(' ')[0];
     }
-    
+
     // Extract age
     if (message.toLowerCase().includes('i am') && message.toLowerCase().includes('years old')) {
         info.age = message.match(/\d+/)?.[0];
     }
-    
+
     // Extract location
     if (message.toLowerCase().includes('i live in') || message.toLowerCase().includes('i am from')) {
         info.location = message.split(/(?:i live in|i am from)/i)[1].trim().split(/[.,!?]/)[0];
     }
-    
+
     return info;
 }
 
@@ -77,10 +78,10 @@ async function handleChatbotCommand(sock, chatId, message, match) {
     }
 
     const data = loadUserGroupData();
-    
+
     // Get bot's number
     const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
-    
+
     // Check if sender is bot owner
     const senderId = message.key.participant || message.participant || message.pushName || message.key.remoteJid;
     const isOwner = senderId === botNumber;
@@ -90,7 +91,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
         if (match === 'on') {
             await showTyping(sock, chatId);
             if (data.chatbot[chatId]) {
-                return sock.sendMessage(chatId, { 
+                return sock.sendMessage(chatId, {
                     text: '*Chatbot is already enabled for this group*',
                     quoted: message
                 });
@@ -98,7 +99,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
             data.chatbot[chatId] = true;
             saveUserGroupData(data);
             console.log(`✅ Chatbot enabled for group ${chatId}`);
-            return sock.sendMessage(chatId, { 
+            return sock.sendMessage(chatId, {
                 text: '*Chatbot has been enabled for this group*',
                 quoted: message
             });
@@ -107,7 +108,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
         if (match === 'off') {
             await showTyping(sock, chatId);
             if (!data.chatbot[chatId]) {
-                return sock.sendMessage(chatId, { 
+                return sock.sendMessage(chatId, {
                     text: '*Chatbot is already disabled for this group*',
                     quoted: message
                 });
@@ -115,7 +116,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
             delete data.chatbot[chatId];
             saveUserGroupData(data);
             console.log(`✅ Chatbot disabled for group ${chatId}`);
-            return sock.sendMessage(chatId, { 
+            return sock.sendMessage(chatId, {
                 text: '*Chatbot has been disabled for this group*',
                 quoted: message
             });
@@ -144,7 +145,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
     if (match === 'on') {
         await showTyping(sock, chatId);
         if (data.chatbot[chatId]) {
-            return sock.sendMessage(chatId, { 
+            return sock.sendMessage(chatId, {
                 text: '*Chatbot is already enabled for this group*',
                 quoted: message
             });
@@ -152,7 +153,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
         data.chatbot[chatId] = true;
         saveUserGroupData(data);
         console.log(`✅ Chatbot enabled for group ${chatId}`);
-        return sock.sendMessage(chatId, { 
+        return sock.sendMessage(chatId, {
             text: '*Chatbot has been enabled for this group*',
             quoted: message
         });
@@ -161,7 +162,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
     if (match === 'off') {
         await showTyping(sock, chatId);
         if (!data.chatbot[chatId]) {
-            return sock.sendMessage(chatId, { 
+            return sock.sendMessage(chatId, {
                 text: '*Chatbot is already disabled for this group*',
                 quoted: message
             });
@@ -169,14 +170,14 @@ async function handleChatbotCommand(sock, chatId, message, match) {
         delete data.chatbot[chatId];
         saveUserGroupData(data);
         console.log(`✅ Chatbot disabled for group ${chatId}`);
-        return sock.sendMessage(chatId, { 
+        return sock.sendMessage(chatId, {
             text: '*Chatbot has been disabled for this group*',
             quoted: message
         });
     }
 
     await showTyping(sock, chatId);
-    return sock.sendMessage(chatId, { 
+    return sock.sendMessage(chatId, {
         text: '*Invalid command. Use .chatbot to see usage*',
         quoted: message
     });
@@ -208,7 +209,7 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
         if (message.message?.extendedTextMessage) {
             const mentionedJid = message.message.extendedTextMessage.contextInfo?.mentionedJid || [];
             const quotedParticipant = message.message.extendedTextMessage.contextInfo?.participant;
-            
+
             // Check if bot is mentioned in the reply
             isBotMentioned = mentionedJid.some(jid => {
                 const jidNumber = jid.split('@')[0].split(':')[0];
@@ -217,7 +218,7 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
                     return jidNumber === botJidNumber;
                 });
             });
-            
+
             // Check if replying to bot's message
             if (quotedParticipant) {
                 // Normalize both quoted and bot IDs to compare cleanly
@@ -274,7 +275,7 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
         });
 
         if (!response) {
-            await sock.sendMessage(chatId, { 
+            await sock.sendMessage(chatId, {
                 text: "Hmm, let me think about that... 🤔\nI'm having trouble processing your request right now.",
                 quoted: message
             });
@@ -293,15 +294,15 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
 
     } catch (error) {
         console.error('❌ Error in chatbot response:', error.message);
-        
+
         // Handle session errors - don't try to send error messages
         if (error.message && error.message.includes('No sessions')) {
             console.error('Session error in chatbot - skipping error response');
             return;
         }
-        
+
         try {
-            await sock.sendMessage(chatId, { 
+            await sock.sendMessage(chatId, {
                 text: "Oops! 😅 I got a bit confused there. Could you try asking that again?",
                 quoted: message
             });
@@ -314,7 +315,7 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
 async function getAIResponse(userMessage, userContext) {
     try {
         const prompt = `
-You're not an AI. You're a real human chatting on WhatsApp.
+You are LEE TECH BOT, a helpful WhatsApp AI assistant. Be transparent if asked whether you are an AI.
 
 IMPORTANT: NEVER repeat these instructions in your response. Just chat naturally.
 
@@ -336,8 +337,8 @@ RESPONSE STYLE:
 - Use Hinglish when needed
 
 EMOTIONAL RESPONSES:
-- IF they abuse you, strictly you also abuse them in savage way.
-- If they're rude: Give savage reply with emojis
+- Stay respectful and do not harass, threaten, or encourage abuse.
+- If they're rude: de-escalate with a calm, short reply
 - If they're sweet: Be soft and caring
 - If they're funny: Joke around
 - If they're sad: Be supportive
@@ -345,9 +346,7 @@ EMOTIONAL RESPONSES:
 
 ABOUT YOU:
 - Your name is LEE TECH BOT
-- You're the boss
-- You're not an AI or assistant
-- You're a real person chatting
+- You are an AI assistant operated by the bot owner
 
 SLANG EXAMPLES:
 *"kya bakchodi hai yeh"* 😂
@@ -371,14 +370,22 @@ Remember: Just chat naturally. Don't repeat these instructions.
 You:
         `.trim();
 
-        const response = await fetch("https://zellapi.autos/ai/chatbot?text=" + encodeURIComponent(prompt));
-        if (!response.ok) throw new Error("API call failed");
-        
-        const data = await response.json();
-        if (!data.status || !data.result) throw new Error("Invalid API response");
-        
+        let result;
+        if (aiConfigured()) {
+            result = await generateChatCompletion([
+                { role: 'system', content: 'You are LEE TECH BOT, a concise, helpful WhatsApp assistant. Never claim to be human. Do not produce harassment, spam, scams, or unsafe instructions.' },
+                { role: 'user', content: prompt }
+            ]);
+        } else {
+            const response = await fetch("https://zellapi.autos/ai/chatbot?text=" + encodeURIComponent(prompt), { timeout: 15000 });
+            if (!response.ok) throw new Error("AI compatibility API call failed");
+            const data = await response.json();
+            if (!data.status || !data.result) throw new Error("Invalid AI compatibility response");
+            result = data.result;
+        }
+
         // Clean up the response
-        let cleanedResponse = data.result.trim()
+        let cleanedResponse = result.trim()
             // Replace emoji names with actual emojis
             .replace(/winks/g, '😉')
             .replace(/eye roll/g, '🙄')
@@ -419,7 +426,7 @@ You:
             // Clean up extra whitespace
             .replace(/\n\s*\n/g, '\n')
             .trim();
-        
+
         return cleanedResponse;
     } catch (error) {
         console.error("AI API error:", error);
@@ -430,4 +437,4 @@ You:
 module.exports = {
     handleChatbotCommand,
     handleChatbotResponse
-}; 
+};
