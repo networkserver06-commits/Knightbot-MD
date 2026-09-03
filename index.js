@@ -78,7 +78,9 @@ let owner = readJson('./data/owner.json', { owner: settings.ownerNumber || '' })
 
 global.botname = "LEE TECH BOT"
 global.themeemoji = "•"
-const pairingCode = process.env.PAIRING_CODE === 'true' || process.argv.includes("--pairing-code")
+// Interactive terminals default to pairing-code login; panels can opt in via
+// PAIRING_CODE=true because they do not have a prompt to answer.
+const pairingCode = process.env.PAIRING_CODE === 'true' || process.argv.includes("--pairing-code") || (process.stdin.isTTY && process.env.PAIRING_CODE !== 'false')
 const useMobile = process.env.USE_MOBILE === 'true' || process.argv.includes("--mobile")
 const authDir = process.env.AUTH_DIR || './session'
 

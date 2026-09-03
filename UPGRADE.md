@@ -45,6 +45,8 @@ AUTH_DIR=./session
 
 Start the bot with `npm start`. It creates the auth directory automatically and prints a WhatsApp pairing code in the Katabump logs. Enter that code in WhatsApp under **Linked devices → Link a device → Link with phone number**. Once linked, leave the generated `AUTH_DIR` on persistent panel storage so the bot reconnects without relinking. If Katabump uses ephemeral storage, the bot still works, but you must generate a new code after every storage reset; no WhatsApp bot can stay linked across a deleted auth state without storing credentials somewhere.
 
+When launched from an interactive terminal, pairing mode is enabled automatically unless `PAIRING_CODE=false` is set. Run `npm start`, enter the international number when prompted, and the generated link code will be printed automatically after the connection starts.
+
 ## AI chatbot
 
 Configure an OpenAI-compatible endpoint, for example `AI_API_URL=https://api.openai.com/v1`, plus a private `AI_API_KEY`. Then an administrator can enable group replies with `.chatbot on`. The bot only responds when mentioned or when a user replies to the bot, which reduces unsolicited traffic. If no AI key is configured, the existing compatibility provider remains available.
