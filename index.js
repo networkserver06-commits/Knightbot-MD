@@ -47,6 +47,8 @@ const { join } = require('path')
 
 // Import lightweight store
 const store = require('./lib/lightweight_store')
+const { ensureRuntimeDirs, readJson } = require('./lib/runtime')
+ensureRuntimeDirs()
 
 // Initialize store
 store.readFromFile()
@@ -70,12 +72,12 @@ setInterval(() => {
     }
 }, 30_000) // check every 30 seconds
 
-let phoneNumber = "254116553618"
-let owner = JSON.parse(fs.readFileSync('./data/owner.json'))
+let phoneNumber = String(process.env.PHONE_NUMBER || settings.ownerNumber || '').replace(/[^0-9]/g, '')
+let owner = readJson('./data/owner.json', { owner: settings.ownerNumber || '' })
 
 global.botname = "LEE TECH BOT"
 global.themeemoji = "•"
-const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code")
+const pairingCode = process.env.PAIRING_CODE === 'true' || process.argv.includes("--pairing-code")
 const useMobile = process.argv.includes("--mobile")
 
 // Only create readline interface if we're in an interactive environment
@@ -227,7 +229,7 @@ async function startXeonBotInc() {
 
         // Basic length validation (Bypassing strict awesome-phonenumber rules for newer Safaricom lines)
         if (phoneNumber.length < 10 || phoneNumber.length > 15) {
-            console.log(chalk.red('Invalid length. Please enter a valid 10-15 digit international number (e.g., 254116553618) without + or spaces.'));
+            console.log(chalk.red('Invalid length. Please enter a valid 10-15 digit international number (e.g., your international number) without + or spaces.'));
             process.exit(1);
         }
         setTimeout(async () => {

@@ -2,11 +2,20 @@
 const fs = require('fs');
 const path = require('path');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys'); 
+const { ensureRuntimeDirs, readJson, createMessageGuard, createHealthMetrics } = require('./lib/runtime');
+
+ensureRuntimeDirs();
+const messageGuard = createMessageGuard({
+    maxCommands: Number(process.env.COMMAND_RATE_LIMIT || 8),
+    windowMs: Number(process.env.COMMAND_RATE_WINDOW_MS || 10000)
+});
+const healthMetrics = createHealthMetrics();
+global.botHealth = healthMetrics;
 
 // ==========================================
 // 1. INITIALIZE GLOBAL PREFIX PERMANENTLY
 // ==========================================
-let currentPrefix = '.'; // Fallback default
+let currentPrefix = process.env.PREFIX || '.'; // Fallback default
 try {
     const prefixPath = path.join(__dirname, './data/prefix.json');
     if (fs.existsSync(prefixPath)) {
@@ -34,7 +43,7 @@ setInterval(() => {
             const filePath = path.join(customTemp, file);
             fs.stat(filePath, (err, stats) => {
                 if (!err && Date.now() - stats.mtimeMs > 3 * 60 * 60 * 1000) {
-                    fs.unlink(filePath, () => { }).catch(()=>null);
+                    fs.unlink(filePath, () => {});
                 }
             });
         }
@@ -199,7 +208,7 @@ const { designCommand } = require('./commands/design');
 // ==========================================
 global.packname = settings.packname || 'LEE TECH';
 global.author = settings.author || 'Bot';
-global.channelLink = "https://whatsapp.com/channel/0029VbBu1EgJUM2iVI3tPE0S";
+global.channelLink = settings.channelLink || "https://whatsapp.com/channel/0029VbBu1EgJUM2iVI3tPE0S";
 global.ytch = "@ServerNetwork-yt";
 
 const channelInfo = {
@@ -224,6 +233,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
         const message = messages[0];
         if (!message?.message) return;
+        if (messageGuard.isDuplicate(message.key?.id)) return;
+        healthMetrics.recordMessage();
 
         // Handle autoread safely
         await handleAutoread(sock, message).catch(()=>null);
@@ -270,6 +281,14 @@ async function handleMessages(sock, messageUpdate, printLog) {
             ''
         ).toLowerCase().replace(/\.\s+/g, '.').trim();
 
+        if (userMessage.startsWith(global.prefix || '.')) {
+            if (!messageGuard.allowCommand(message.key.participant || message.key.remoteJid)) {
+                await sock.sendMessage(chatId, { text: '⏳ Please slow down and try again in a moment.' }, { quoted: message }).catch(() => {});
+                return;
+            }
+            healthMetrics.recordCommand();
+        }
+
         // Preserve raw message
         const rawText = message.message?.conversation?.trim() ||
             message.message?.extendedTextMessage?.text?.trim() ||
@@ -280,7 +299,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         // Read bot mode safely
         let isPublic = true;
         try {
-            const data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
+            const data = readJson(path.join(__dirname, 'data/messageCount.json'), {});
             if (typeof data.isPublic === 'boolean') isPublic = data.isPublic;
         } catch (error) {}
         const isOwnerOrSudoCheck = message.key.fromMe || senderIsOwnerOrSudo;
