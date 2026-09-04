@@ -76,7 +76,7 @@ AUTH_DIR=./session
 
 Start the bot with `npm start`. If a saved session exists, it reconnects without asking anything. For a new session, it creates the auth directory automatically and prompts directly in the Katabump console for the WhatsApp number. Enter digits with country code, for example `254781231617`; the linking code is then printed in the logs. Keep `AUTH_DIR` on persistent panel storage so the bot reconnects without relinking.
 
-If the Katabump console closes stdin, set `PHONE_NUMBER=254781231617` as a panel environment variable and fully restart/redeploy the application. The bot also accepts `PAIRING_NUMBER`, `WHATSAPP_NUMBER`, or `WA_NUMBER` as aliases. The variable must be attached to the running service, not only saved in a local `.env` file. Startup logs report only `number detected` or `number missing`; they never print the number.
+If the Katabump console closes stdin, set `PHONE_NUMBER=254781231617` as a panel environment variable and fully restart/redeploy the application. The bot also accepts `PAIRING_NUMBER`, `PAIRING_PHONE`, `WHATSAPP_NUMBER`, `WHATSAPP_PHONE`, `WA_NUMBER`, `BOT_PHONE_NUMBER`, or `OWNER_NUMBER` as aliases. A numeric `PAIRING_CODE` is also accepted for legacy panel configurations, although `PAIRING_NUMBER` is preferred. The variable must be attached to the running service, not only saved in a local `.env` file. Startup logs report only `number detected` or `number missing`; they never print the number.
 
 To use QR instead, set `AUTH_METHOD=qr` and `PAIRING_CODE=false`. The linking-code prompt is never shown when a saved session already exists.
 

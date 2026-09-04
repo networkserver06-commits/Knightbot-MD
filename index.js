@@ -231,7 +231,7 @@ async function startXeonBotInc() {
 
         // Re-read panel variables here because some panel launchers inject
         // environment values after the module bootstrap phase.
-        const configuredPairingInput = process.env.PHONE_NUMBER || process.env.PAIRING_NUMBER || process.env.WHATSAPP_NUMBER || process.env.WA_NUMBER || phoneNumber
+        const configuredPairingInput = process.env.PHONE_NUMBER || process.env.PAIRING_NUMBER || process.env.PAIRING_PHONE || process.env.WHATSAPP_NUMBER || process.env.WHATSAPP_PHONE || process.env.WA_NUMBER || process.env.BOT_PHONE_NUMBER || process.env.OWNER_NUMBER || (process.env.PAIRING_CODE !== 'true' && process.env.PAIRING_CODE !== 'false' ? process.env.PAIRING_CODE : '') || phoneNumber
         let requestedPhoneNumber = normalizeWhatsAppNumber(configuredPairingInput)
         console.log(chalk.cyan(`Pairing configuration: number ${requestedPhoneNumber ? 'detected' : 'missing'}, console input ${rl.closed || process.stdin.readableEnded ? 'closed' : 'available'}`))
         do {
