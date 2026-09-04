@@ -34,7 +34,7 @@ function buildMenu() {
         section('⚡ QUICK START', [
             `${p}ping   ${p}speed   ${p}uptime`,
             `${p}health   ${p}botinfo   ${p}id`,
-            `${p}owner   ${p}groupinfo   ${p}staff`,
+            `${p}owner   ${p}groupinfo   ${p}staff   ${p}jid`,
             `${p}help <command> for detailed usage`,
             `${p}help admin   ${p}help owner   ${p}help download`
         ]),
@@ -42,13 +42,15 @@ function buildMenu() {
         section('✨ AI & SMART', [
             `${p}gpt <question>   ${p}gemini <question>`,
             `${p}chatbot on/off   ${p}imagine <prompt>`,
-            `${p}translate <text> <lang>   ${p}tts <text>`
+            `${p}translate <text> <lang>   ${p}tts <text>`,
+            `${p}weather <city>   ${p}news   ${p}lyrics <song>`
         ]),
         '',
         section('🎨 MEDIA STUDIO', [
             `${p}sticker   ${p}take   ${p}emojimix`,
             `${p}removebg   ${p}remini   ${p}blur`,
-            `${p}meme   ${p}attp   ${p}textmaker`
+            `${p}meme   ${p}attp   ${p}textmaker`,
+            `${p}vv   ${p}delete   ${p}clear`
         ]),
         '',
         section('📥 DOWNLOADS', [
@@ -63,13 +65,15 @@ function buildMenu() {
             `${p}warn   ${p}warnings   ${p}mute   ${p}kick`,
             `${p}antilink   ${p}antispam   ${p}antibadword`,
             `${p}welcome on/off   ${p}goodbye on/off   ${p}chatbot on/off`,
+            `${p}groupinfo   ${p}topmembers   ${p}onlinemembers`,
             `Admin actions require the bot to be group admin`
         ]),
         '',
         section('🎮 FUN & GAMES', [
             `${p}tictactoe   ${p}trivia   ${p}hangman`,
             `${p}truth   ${p}dare   ${p}8ball`,
-            `${p}joke   ${p}quote   ${p}fact   ${p}shayari`
+            `${p}joke   ${p}quote   ${p}fact   ${p}shayari`,
+            `${p}compliment   ${p}insult   ${p}flirt   ${p}ship`
         ]),
         '',
         section('🔐 OWNER TOOLS', [
