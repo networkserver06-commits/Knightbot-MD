@@ -36,7 +36,7 @@ function buildMenu() {
             `${p}health   ${p}botinfo   ${p}id   ${p}adminstatus`,
             `${p}owner   ${p}groupinfo   ${p}staff   ${p}jid`,
             `${p}groupstats   ${p}eat   ${p}time`,
-            `${p}help <command> for detailed usage`,
+            `${p}help <command>   ${p}commands  (full menu)`,
             `${p}help admin   ${p}help owner   ${p}help download`
         ]),
         '',
