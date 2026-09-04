@@ -317,10 +317,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
         // moderation checks, so they remain responsive on busy groups.
         const fastCommand = userMessage.split(/\s+/)[0];
         const fastPrefix = global.prefix === 'none' ? '.' : (global.prefix || '.');
-        const isFastCommand = userMessage.startsWith(fastPrefix) && ['.ping', '.help', '.menu', '.commands', '.alive', '.system', '.stats', '.speed', '.uptime', '.runtime', '.id', '.botinfo', '.health'].includes(fastCommand);
+        const isFastCommand = userMessage.startsWith(fastPrefix) && ['.ping', '.help', '.menu', '.commands', '.devmenu', '.developermenu', '.tools', '.alive', '.system', '.stats', '.speed', '.uptime', '.runtime', '.id', '.botinfo', '.health'].includes(fastCommand);
         if (isFastCommand) {
             if (fastCommand === '.ping') await pingCommand(sock, chatId, message);
-            else if (fastCommand === '.help' || fastCommand === '.menu' || fastCommand === '.commands') await helpCommand(sock, chatId, message);
+            else if (fastCommand === '.help' || fastCommand === '.menu' || fastCommand === '.commands' || fastCommand === '.devmenu' || fastCommand === '.developermenu' || fastCommand === '.tools') await helpCommand(sock, chatId, message);
             else if (fastCommand === '.alive') await aliveCommand(sock, chatId, message);
             else if (fastCommand === '.speed') await speedCommand(sock, chatId, message);
             else if (fastCommand === '.uptime' || fastCommand === '.runtime') await uptimeCommand(sock, chatId, message);
@@ -684,7 +684,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 await unbanCommand(sock, chatId, message);
                 commandExecuted = true;
                 break;
-            case userMessage === '.help' || userMessage === '.menu' || userMessage === '.commands' || userMessage === '.bot' || userMessage === '.list':
+            case userMessage === '.help' || userMessage === '.menu' || userMessage === '.commands' || userMessage === '.devmenu' || userMessage === '.developermenu' || userMessage === '.tools' || userMessage === '.bot' || userMessage === '.list':
                 await helpCommand(sock, chatId, message, global.channelLink);
                 commandExecuted = true;
                 break;

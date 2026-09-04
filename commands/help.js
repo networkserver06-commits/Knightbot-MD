@@ -85,11 +85,48 @@ function buildMenu() {
             `${p}backup   ${p}update   ${p}cleartmp`,
             `${p}autotyping   ${p}autoread   ${p}anticall`,
             `${p}tostatus  (your status)   ${p}togstatus  (group audience)`,
-            `${p}savestatus / ${p}statusdl  (download status)`
+            `${p}savestatus / ${p}statusdl  (download status)`,
+            `${p}devmenu  (developer tools)`
         ]),
         '',
         global.ownerControls?.hideChannel ? '╭─〔 🔒 PRIVATE MODE 〕\n│ Channel promotion is hidden.\n╰──────────────' : `╭─〔 📢 OFFICIAL CHANNEL 〕\n│ ${global.channelLink || 'https://whatsapp.com'}\n╰──────────────`,
         `\n⚡ Fast • Secure • Reliable\n✦ Powered by LEE TECH`
+    ].join('\n');
+}
+
+function buildDeveloperMenu() {
+    const p = global.prefix === 'none' ? '.' : (global.prefix || '.');
+    const version = settings.version || '3.0.7';
+    return [
+        `╭━━━〔 🧰 DEVELOPER TOOLKIT 〕━━━╮`,
+        `┃ ⚙️ LEE TECH BOT v${version}`,
+        `╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+        '',
+        section('📡 OBSERVABILITY', [
+            `${p}health   ${p}system   ${p}stats`,
+            `${p}ping   ${p}speed   ${p}uptime   ${p}runtime`,
+            `${p}botinfo   ${p}jid   ${p}ownerstatus`
+        ]),
+        '',
+        section('🛠️ OPERATIONS', [
+            `${p}settings   ${p}backup   ${p}cleartmp`,
+            `${p}clearsession   ${p}update`,
+            `${p}maintenance on/off   ${p}mode public/private`
+        ]),
+        '',
+        section('🔧 CONFIGURATION', [
+            `${p}setprefix <symbol>`,
+            `${p}hidechannel on/off`,
+            `${p}setmenuimage  (reply to image)`
+        ]),
+        '',
+        section('🔐 DEVELOPER ACCESS', [
+            `${p}eval <code>  (owner/super-owner only)`,
+            `${p}git   ${p}github   ${p}repo`,
+            'Sensitive operations are protected by owner authorization.'
+        ]),
+        '',
+        'Use .help <command> for user-facing command guides.'
     ].join('\n');
 }
 
@@ -103,13 +140,17 @@ function buildDetails(topic) {
         admin: `🛡️ *ADMIN GUIDE*\n\n${p}adminstatus\n${p}groupstats\n${p}kick @user\n${p}promote @user\n${p}demote @user\n${p}mute @user\n${p}warn @user reason\n${p}antilink on/off\n${p}antispam on/off\n${p}welcome on/off\n${p}goodbye on/off\n\nThe sender must be a group admin, and the bot must also be a group admin for moderation actions.`,
         owner: `🔐 *OWNER GUIDE*\n\n${p}mode public/private\n${p}setprefix .\n${p}hidechannel on/off\n${p}maintenance on/off\n${p}ownerstatus\n${p}clearsession\n${p}cleartmp\n${p}backup\n${p}update\n${p}tostatus (reply to text/image/video)\n${p}togstatus (reply in a group; group audience)\n${p}savestatus or ${p}statusdl (reply to a status)\n\nOwner tools are restricted to the configured owner or sudo account.`,
         download: `📥 *DOWNLOAD GUIDE*\n\n${p}download <social link>\n${p}tiktok <url>\n${p}instagram <url>\n${p}facebook <url>\n${p}play <song>\n${p}song <song>\n${p}spotify <query>\n${p}video <query>\n${p}ss <url>\n${p}url or ${p}tourl (reply to image/video)\n\nUse direct public links and avoid repeated requests to reduce rate limits.`,
-        ai: `✨ *AI GUIDE*\n\n${p}gpt <question>\n${p}gemini <question>\n${p}chatbot on/off\n${p}imagine <prompt>\n${p}translate <text> <language>\n${p}tts <text>`
+        ai: `✨ *AI GUIDE*\n\n${p}gpt <question>\n${p}gemini <question>\n${p}chatbot on/off\n${p}imagine <prompt>\n${p}translate <text> <language>\n${p}tts <text>`,
+        dev: buildDeveloperMenu(),
+        developer: buildDeveloperMenu(),
+        tools: buildDeveloperMenu()
     };
     return topics[topic] || `Use ${p}menu for all commands. Available guides: admin, owner, download, ai.`;
 }
 
 async function helpCommand(sock, chatId, message) {
-    const requestedTopic = messageText(message).trim().split(/\s+/)[1]?.toLowerCase();
+    const words = messageText(message).trim().split(/\s+/);
+    const requestedTopic = words[1]?.toLowerCase() || (['.devmenu', '.developermenu', '.tools'].includes(words[0]?.toLowerCase()) ? 'dev' : undefined);
     const helpMessage = requestedTopic ? buildDetails(requestedTopic) : buildMenu();
     const image = getMenuImage();
     const contextInfo = global.ownerControls?.hideChannel ? {} : {
