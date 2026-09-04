@@ -7,7 +7,16 @@ temp/
 baileys_store.json
 
 # Session files
-session/
+/session/
+/auth/
+/auth_info/
+/sessions/
+**/creds.json
+**/app-state-sync-key-*.json
+**/pre-key-*.json
+**/sender-key-*.json
+**/session-*.json
+**/*signal*.json
 
 # Environment variables
 .env
