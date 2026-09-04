@@ -78,7 +78,7 @@ function buildMenu() {
             `${p}autotyping   ${p}autoread   ${p}anticall`
         ]),
         '',
-        `╭─〔 📢 OFFICIAL CHANNEL 〕\n│ ${global.channelLink || 'https://whatsapp.com'}\n╰──────────────`,
+        global.ownerControls?.hideChannel ? '╭─〔 🔒 PRIVATE MODE 〕\n│ Channel promotion is hidden.\n╰──────────────' : `╭─〔 📢 OFFICIAL CHANNEL 〕\n│ ${global.channelLink || 'https://whatsapp.com'}\n╰──────────────`,
         `\n⚡ Fast • Secure • Reliable\n✦ Powered by LEE TECH`
     ].join('\n');
 }
