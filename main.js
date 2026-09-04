@@ -20,7 +20,9 @@ try {
     const prefixPath = path.join(__dirname, './data/prefix.json');
     if (fs.existsSync(prefixPath)) {
         const prefixData = JSON.parse(fs.readFileSync(prefixPath, 'utf8'));
-        currentPrefix = prefixData.prefix || '.';
+        currentPrefix = Object.prototype.hasOwnProperty.call(prefixData, 'prefix')
+            ? String(prefixData.prefix)
+            : '.';
     }
 } catch (e) {
     console.log("Error loading prefix, using default.");
@@ -558,14 +560,14 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 break;
             }
 
-            case userMessage.startsWith('.setprefix'): {
+            case commandToken === '.setprefix': {
                 if (!isOwnerOrSudoCheck) {
                     await sock.sendMessage(chatId, { text: '❌ Only the bot owner can change the prefix.', ...channelInfo }, { quoted: message });
                     break;
                 }
-                const newPrefix = userMessage.split(' ')[1];
-                if (!newPrefix) {
-                    await sock.sendMessage(chatId, { text: '📝 Please provide a prefix. Example: *.setprefix !* or *.setprefix none*', ...channelInfo }, { quoted: message });
+                const newPrefix = rawText.trim().split(/\s+/)[1] || '';
+                if (!newPrefix || /\s/u.test(newPrefix)) {
+                    await sock.sendMessage(chatId, { text: '📝 Please provide one prefix token, including emoji or Unicode. Use `none` for no prefix.\nExample: .setprefix 🔥', ...channelInfo }, { quoted: message });
                     break;
                 }
 

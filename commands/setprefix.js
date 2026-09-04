@@ -8,16 +8,18 @@ const setPrefixCommand = async (sock, chatId, message, isOwnerOrSudoCheck, userM
         return await sock.sendMessage(chatId, { text: '❌ Only the owner can change the prefix.' }, { quoted: message });
     }
 
-    const newPrefix = userMessage.split(' ')[1];
+    const newPrefix = userMessage.trim().split(/\s+/)[1] || '';
 
-    if (!newPrefix) {
-        return await sock.sendMessage(chatId, { text: '📝 Usage: .setprefix [symbol]\nExample: .setprefix !' }, { quoted: message });
+    if (!newPrefix || /\s/u.test(newPrefix)) {
+        return await sock.sendMessage(chatId, { text: '📝 Usage: .setprefix [one token]\nExamples: .setprefix !   .setprefix 🔥   .setprefix none' }, { quoted: message });
     }
 
-    // Save the new prefix permanently
-    fs.writeFileSync(prefixPath, JSON.stringify({ prefix: newPrefix }, null, 2));
+    const storedPrefix = newPrefix.toLowerCase() === 'none' ? '' : newPrefix;
 
-    await sock.sendMessage(chatId, { text: `✅ Prefix successfully and permanently changed to: *${newPrefix}*` }, { quoted: message });
+    // Save the new prefix permanently
+    fs.writeFileSync(prefixPath, JSON.stringify({ prefix: storedPrefix }, null, 2));
+
+    await sock.sendMessage(chatId, { text: `✅ Prefix successfully and permanently changed to: *${storedPrefix || 'none (no prefix)'}*` }, { quoted: message });
 };
 
 module.exports = setPrefixCommand;
