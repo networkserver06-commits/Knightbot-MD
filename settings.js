@@ -14,7 +14,10 @@ const envCandidates = [
   path.join(__dirname, '.env'),
   '/home/container/.env',
   '/home/container/env',
-  '/home/container/config.env'
+  '/home/container/config.env',
+  '/home/container/LEE-TECHBOT-MD-main/.env',
+  '/home/container/LEE-TECHBOT-MD-main/env',
+  '/home/container/LEE-TECHBOT-MD-main/config.env'
 ].filter(Boolean);
 for (const envPath of [...new Set(envCandidates)]) {
   if (fs.existsSync(envPath) && fs.statSync(envPath).isFile()) {
