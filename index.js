@@ -78,9 +78,9 @@ let owner = readJson('./data/owner.json', { owner: settings.ownerNumber || '' })
 
 global.botname = "LEE TECH BOT"
 global.themeemoji = "•"
-// Interactive terminals default to pairing-code login; panels can opt in via
-// PAIRING_CODE=true because they do not have a prompt to answer.
-const pairingCode = process.env.PAIRING_CODE === 'true' || process.argv.includes("--pairing-code") || (process.stdin.isTTY && process.env.PAIRING_CODE !== 'false')
+// A saved session reconnects silently. If no session exists, an interactive
+// console asks for QR or pairing-code login; headless panels default to QR.
+let pairingCode = process.env.PAIRING_CODE === 'true' || process.env.AUTH_METHOD === 'pairing' || process.argv.includes("--pairing-code")
 const useMobile = process.env.USE_MOBILE === 'true' || process.argv.includes("--mobile")
 const authDir = process.env.AUTH_DIR || './session'
 
@@ -108,6 +108,13 @@ async function startXeonBotInc() {
         // need to be uploaded beforehand; keep AUTH_DIR on persistent panel
         // storage if you want to avoid relinking after a restart.
         const { state, saveCreds } = await useMultiFileAuthState(authDir)
+        if (!state.creds.registered && !process.env.AUTH_METHOD && !process.env.PAIRING_CODE && process.stdin.isTTY) {
+            const choice = (await question('No saved WhatsApp session. Choose login: [1] QR scan  [2] linking code: ')).trim().toLowerCase()
+            pairingCode = choice === '2' || choice === 'pairing' || choice === 'code'
+            if (pairingCode && !phoneNumber) {
+                phoneNumber = (await question('Enter WhatsApp number with country code, digits only (example 254723...): ')).replace(/[^0-9]/g, '')
+            }
+        }
         const msgRetryCounterCache = new NodeCache()
 
         const XeonBotInc = makeWASocket({
