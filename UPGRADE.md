@@ -16,6 +16,7 @@ This release hardens the existing Baileys bot without removing its existing comm
 - **Privacy improved:** example owner and premium data files no longer contain personal phone numbers.
 - **Panel deployment optimized:** Katabump can use `npm run install:panel` for lockfile-based production installs and `npm run start:panel` for a bounded-memory production process; npm audit, funding, and progress overhead are disabled through `.npmrc`.
 - **Terminal deployment added:** local VPS, Linux terminal, and SSH deployments can use `npm run deploy:terminal`; it installs dependencies, rebuilds `sharp`, and starts the bot with the direct pairing prompt.
+- **Termux compatibility improved:** native `sharp` loading is optional at startup, so pairing and core bot features can run on Android; sharp-based image commands report a clear feature-level warning if Android cannot build `sharp`.
 
 ## Secure setup
 
@@ -45,6 +46,20 @@ npm run deploy:terminal
 ```
 
 For a new session, the terminal prompts for the complete international WhatsApp number. Enter digits such as `254781231617`; formatted values such as `+254 781 231 617` are also normalized. Keep `./session` on persistent disk. For a background terminal service, use a process manager such as systemd or PM2 and ensure only one process uses the session directory.
+
+### Termux and VPS prerequisites
+
+On Termux:
+
+```bash
+pkg update -y
+pkg install nodejs-lts git ffmpeg -y
+git clone https://github.com/networkserver06-commits/LEE-TECHBOT-MD.git
+cd LEE-TECHBOT-MD
+npm run deploy:termux
+```
+
+On a VPS, install Node.js, Git, and FFmpeg, then run `npm run deploy:terminal`. Termux and VPS deployments must keep `./session` persistent and run only one bot process per session. The core WhatsApp connection does not depend on sharp; if Android cannot build its native module, only sharp-based image commands are unavailable.
 
 ## Katabump panel linking-code deployment
 

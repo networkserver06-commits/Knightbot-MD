@@ -1,27 +1,31 @@
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 const axios = require('axios');
-const sharp = require('sharp');
+let sharp;
+try { sharp = require('sharp'); } catch (error) {
+    console.warn('[blur] sharp unavailable; .blur will be disabled until native dependencies are installed.');
+}
 
 async function blurCommand(sock, chatId, message, quotedMessage) {
     try {
+        if (!sharp) throw new Error('sharp is not installed');
         // Get the image to blur
         let imageBuffer;
-        
+
         if (quotedMessage) {
             // If replying to a message
             if (!quotedMessage.imageMessage) {
-                await sock.sendMessage(chatId, { 
-                    text: '❌ Please reply to an image message' 
+                await sock.sendMessage(chatId, {
+                    text: '❌ Please reply to an image message'
                 }, { quoted: message });
                 return;
             }
-            
+
             const quoted = {
                 message: {
                     imageMessage: quotedMessage.imageMessage
                 }
             };
-            
+
             imageBuffer = await downloadMediaMessage(
                 quoted,
                 'buffer',
@@ -37,8 +41,8 @@ async function blurCommand(sock, chatId, message, quotedMessage) {
                 { }
             );
         } else {
-            await sock.sendMessage(chatId, { 
-                text: '❌ Please reply to an image or send an image with caption .blur' 
+            await sock.sendMessage(chatId, {
+                text: '❌ Please reply to an image or send an image with caption .blur'
             }, { quoted: message });
             return;
         }
@@ -74,10 +78,10 @@ async function blurCommand(sock, chatId, message, quotedMessage) {
 
     } catch (error) {
         console.error('Error in blur command:', error);
-        await sock.sendMessage(chatId, { 
-            text: '❌ Failed to blur image. Please try again later.' 
+        await sock.sendMessage(chatId, {
+            text: '❌ Failed to blur image. Please try again later.'
         }, { quoted: message });
     }
 }
 
-module.exports = blurCommand; 
+module.exports = blurCommand;

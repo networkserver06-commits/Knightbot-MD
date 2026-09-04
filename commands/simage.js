@@ -1,4 +1,7 @@
-const sharp = require('sharp');
+let sharp;
+try { sharp = require('sharp'); } catch (error) {
+    console.warn('[simage] sharp unavailable; sticker conversion will be disabled until native dependencies are installed.');
+}
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const fse = require('fs-extra');
@@ -21,6 +24,7 @@ const scheduleFileDeletion = (filePath) => {
 
 const convertStickerToImage = async (sock, quotedMessage, chatId) => {
     try {
+        if (!sharp) throw new Error('sharp is not installed');
         const stickerMessage = quotedMessage.stickerMessage;
         if (!stickerMessage) {
             await sock.sendMessage(chatId, { text: 'Reply to a sticker with .simage to convert it.' });
