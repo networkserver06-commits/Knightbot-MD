@@ -15,6 +15,7 @@ This release hardens the existing Baileys bot without removing its existing comm
 - **Responsible anti-ban protection:** duplicate suppression, command throttling, bounded AI retries, and exponential reconnect backoff reduce accidental spam and connection churn. No bot can guarantee immunity from WhatsApp enforcement; use the official terms-compliant account and avoid bulk messaging.
 - **Privacy improved:** example owner and premium data files no longer contain personal phone numbers.
 - **Panel deployment optimized:** Katabump can use `npm run install:panel` for lockfile-based production installs and `npm run start:panel` for a bounded-memory production process; npm audit, funding, and progress overhead are disabled through `.npmrc`.
+- **Terminal deployment added:** local VPS, Linux terminal, and SSH deployments can use `npm run deploy:terminal`; it installs dependencies, rebuilds `sharp`, and starts the bot with the direct pairing prompt.
 
 ## Secure setup
 
@@ -32,6 +33,18 @@ npm run start:panel
 ```
 
 The bot defaults to public mode and the `.` prefix. Change `BOT_MODE` and `PREFIX` in `.env` or use the bot’s owner settings where supported.
+
+## Terminal deployment
+
+On a Linux terminal or VPS, clone the repository and run:
+
+```bash
+git clone https://github.com/networkserver06-commits/LEE-TECHBOT-MD.git
+cd LEE-TECHBOT-MD
+npm run deploy:terminal
+```
+
+For a new session, the terminal prompts for the complete international WhatsApp number. Enter digits such as `254781231617`; formatted values such as `+254 781 231 617` are also normalized. Keep `./session` on persistent disk. For a background terminal service, use a process manager such as systemd or PM2 and ensure only one process uses the session directory.
 
 ## Katabump panel linking-code deployment
 

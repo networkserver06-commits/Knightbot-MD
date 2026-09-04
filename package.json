@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "start:panel": "node --max-old-space-size=512 index.js",
+    "start:terminal": "node index.js",
     "start:optimized": "node --max-old-space-size=512 --optimize-for-size --gc-interval=100 index.js",
     "cleanup": "node cleanup.js",
     "reset-session": "node reset-session.js",
@@ -14,6 +15,8 @@
     "test": "node --test test/*.test.js",
     "check": "node --check index.js && node --check main.js && npm test",
     "install:panel": "npm ci --omit=dev --no-audit --no-fund --prefer-offline && npm rebuild sharp --foreground-scripts",
+    "install:terminal": "npm ci --no-audit --no-fund --prefer-offline && npm rebuild sharp --foreground-scripts",
+    "deploy:terminal": "npm run install:terminal && npm run start:terminal",
     "install:force": "npm install --force",
     "docker:build": "docker build -t leetechbot ."
   },
