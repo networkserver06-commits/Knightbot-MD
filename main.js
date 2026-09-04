@@ -451,8 +451,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
             return;
         }
 
-        const adminCommands = ['.add', '.groupvcf', '.savecontacts', '.extract', '.mute', '.unmute', '.link', '.ban', '.unban', '.promote', '.demote', '.kick', "antifake", '.tagall', '.tagnotadmin', '.hidetag', '.antilink', '.antiphoto', '.antisticker', '.antitag', '.antimention', '.setgdesc', '.setgname', '.setgpp', '.kickall'];
-        const isAdminCommand = adminCommands.some(cmd => userMessage.startsWith(cmd));
+        const commandToken = userMessage.split(/\s+/)[0].toLowerCase();
+        const adminCommands = ['.add', '.groupvcf', '.savecontacts', '.extract', '.mute', '.unmute', '.link', '.ban', '.unban', '.promote', '.demote', '.kick', '.antifake', '.tagall', '.tagnotadmin', '.hidetag', '.antilink', '.antiphoto', '.antisticker', '.antitag', '.antimention', '.setgdesc', '.setgname', '.setgpp', '.kickall'];
+        const isAdminCommand = adminCommands.includes(commandToken);
 
         const ownerCommands = ['.mode', '.autostatus', '.antidelete', '.cleartmp', '.setpp', '.tostatus', '.togstatus', '.clearsession', '.creategroup', '.areact', '.autoreact', '.decrypt', '.autotyping', '.autoread', '.pmblocker', '.update', '.setpayment', '.setprefix', '.hidechannel', '.maintenance', '.ownerstatus'];
         const isOwnerCommand = ownerCommands.some(cmd => userMessage.startsWith(cmd));
@@ -463,8 +464,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 return;
             }
 
-            if (userMessage.startsWith('.mute') || userMessage === '.unmute' || userMessage.startsWith('.ban') || userMessage.startsWith('.unban') || userMessage.startsWith('.promote') || userMessage.startsWith('.demote') || userMessage === '.kickall') {
-                if (!isSenderAdmin && !message.key.fromMe) {
+            if (['.mute', '.unmute', '.ban', '.unban', '.promote', '.demote', '.kickall'].includes(commandToken)) {
+                if (!isSenderAdmin && !isOwnerOrSudoCheck) {
                     await sock.sendMessage(chatId, { text: 'Sorry, only group admins can use this command.', ...channelInfo }, { quoted: message });
                     return;
                 }
