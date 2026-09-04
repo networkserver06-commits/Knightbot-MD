@@ -229,10 +229,12 @@ async function startXeonBotInc() {
     if (pairingCode && !XeonBotInc.authState.creds.registered) {
         if (useMobile) throw new Error('Cannot use pairing code with mobile api')
 
-        let requestedPhoneNumber = phoneNumber
+        // Re-read panel variables here because some panel launchers inject
+        // environment values after the module bootstrap phase.
+        let requestedPhoneNumber = normalizeWhatsAppNumber(process.env.PHONE_NUMBER || process.env.PAIRING_NUMBER || phoneNumber)
         do {
             if (!requestedPhoneNumber && (rl.closed || process.stdin.readableEnded)) {
-                throw Object.assign(new Error('Pairing input console is closed and PHONE_NUMBER is not configured'), { code: 'PAIRING_INPUT_CLOSED' })
+                throw Object.assign(new Error('Pairing input console is closed and PHONE_NUMBER/PAIRING_NUMBER is missing or invalid'), { code: 'PAIRING_INPUT_CLOSED' })
             }
             if (!requestedPhoneNumber) requestedPhoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Enter WhatsApp phone number for pairing code:\nInclude country code digits, without +, spaces, or dashes.\nExample: 254116553618 or 254723456789\nNumber: `)))
             requestedPhoneNumber = normalizeWhatsAppNumber(requestedPhoneNumber)
