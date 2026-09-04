@@ -1,299 +1,107 @@
-const settings = require('../settings');
+'use strict';
+
 const fs = require('fs');
 const path = require('path');
+const settings = require('../settings');
+
+let cachedMenuImage;
+
+function getMenuImage() {
+    if (cachedMenuImage !== undefined) return cachedMenuImage;
+    const candidates = [path.join(__dirname, '../menu.jpg'), path.join(__dirname, '../assets/bot_image.jpg')];
+    for (const file of candidates) {
+        try {
+            if (fs.existsSync(file)) return (cachedMenuImage = fs.readFileSync(file));
+        } catch (_) {}
+    }
+    return (cachedMenuImage = null);
+}
+
+function section(title, lines) {
+    return `╭─〔 ${title} 〕\n${lines.map(line => `│ ${line}`).join('\n')}\n╰──────────────`;
+}
+
+function buildMenu() {
+    const p = global.prefix === 'none' ? '.' : (global.prefix || '.');
+    const name = settings.botName || 'LEE TECH BOT';
+    const version = settings.version || '3.0.7';
+    return [
+        `╭━━━〔 🤖 ${name} 〕━━━╮`,
+        `┃  ✦ PREMIUM COMMAND CENTER`,
+        `┃  ⚡ v${version}  •  ${global.ytch || '@ServerNetwork-yt'}`,
+        `╰━━━━━━━━━━━━━━━━━━━━╯`,
+        '',
+        section('⚡ QUICK START', [
+            `${p}ping   ${p}alive   ${p}system`,
+            `${p}owner   ${p}groupinfo   ${p}staff`,
+            `${p}help <command> for detailed usage`
+        ]),
+        '',
+        section('✨ AI & SMART', [
+            `${p}gpt <question>   ${p}gemini <question>`,
+            `${p}chatbot on/off   ${p}imagine <prompt>`,
+            `${p}translate <text> <lang>   ${p}tts <text>`
+        ]),
+        '',
+        section('🎨 MEDIA STUDIO', [
+            `${p}sticker   ${p}take   ${p}emojimix`,
+            `${p}removebg   ${p}remini   ${p}blur`,
+            `${p}meme   ${p}attp   ${p}textmaker`
+        ]),
+        '',
+        section('📥 DOWNLOADS', [
+            `${p}play <song>   ${p}song <song>   ${p}spotify <query>`,
+            `${p}tiktok <url>   ${p}instagram <url>   ${p}facebook <url>`,
+            `${p}video <query>   ${p}ss <url>`
+        ]),
+        '',
+        section('🛡️ GROUP ADMIN', [
+            `${p}tagall   ${p}hidetag   ${p}tagnotadmin`,
+            `${p}warn   ${p}warnings   ${p}mute   ${p}kick`,
+            `${p}antilink   ${p}antispam   ${p}antibadword`,
+            `${p}welcome on/off   ${p}goodbye on/off   ${p}chatbot on/off`
+        ]),
+        '',
+        section('🎮 FUN & GAMES', [
+            `${p}tictactoe   ${p}trivia   ${p}hangman`,
+            `${p}truth   ${p}dare   ${p}8ball`,
+            `${p}joke   ${p}quote   ${p}fact   ${p}shayari`
+        ]),
+        '',
+        section('🔐 OWNER TOOLS', [
+            `${p}settings   ${p}mode   ${p}setprefix`,
+            `${p}backup   ${p}update   ${p}cleartmp`,
+            `${p}autotyping   ${p}autoread   ${p}anticall`
+        ]),
+        '',
+        `╭─〔 📢 OFFICIAL CHANNEL 〕\n│ ${global.channelLink || 'https://whatsapp.com'}\n╰──────────────`,
+        `\n⚡ Fast • Secure • Reliable\n✦ Powered by LEE TECH`
+    ].join('\n');
+}
 
 async function helpCommand(sock, chatId, message) {
-    const helpMessage = `
-╔═══════════════════╗
-   *🤖 ${settings.botName || 'LEE TECHBOT-MD'}* Version: *${settings.version || '3.0.7'}*
-   🚀 *FULLY POWERED BY LEE TECH*
-   YT : ${global.ytch}
-╚═══════════════════╝
-
-*Available Commands:*
-
-╔═══════════════════╗
-🌐 *General Commands*:
-║ ➤ .help or .menu
-║ ➤ .ping
-║ ➤ .alive
-║ ➤ .tts <text>
-║ ➤ .owner or .vcf
-║ ➤ .joke
-║ ➤ .quote
-║ ➤ .fact
-║ ➤ .weather <city>
-║ ➤ .news
-║ ➤ .attp <text>
-║ ➤ .lyrics <song_title>
-║ ➤ .8ball <question>
-║ ➤ .groupinfo
-║ ➤ .staff or .admins 
-║ ➤ .vv or .vv2
-║ ➤ .trt <text> <lang>
-║ ➤ .ss <link>
-║ ➤ .jid
-║ ➤ .url
-╚═══════════════════╝ 
-
-╔═══════════════════╗
-👮‍♂️ *Admin Commands*:
-║ ➤ .add <number>
-║ ➤ .ban @user
-║ ➤ .promote @user
-║ ➤ .demote @user
-║ ➤ .mute <minutes>
-║ ➤ .unmute
-║ ➤ .delete or .del
-║ ➤ .kick @user
-║ ➤ .kickall
-║ ➤ .warnings @user
-║ ➤ .warn @user
-║ ➤ .antilink
-║ ➤ .antibadword
-║ ➤ .antitag <on/off>
-║ ➤ .antimention <on/off>
-║ ➤ .antispam <on/off>
-║ ➤ .antibot <on/off>
-║ ➤ .antifake <on/off>
-║ ➤ .antisticker <on/off>
-║ ➤ .antiphoto <on/off>
-║ ➤ .joinapproval <on/off>
-║ ➤ .autodl <on/off>
-║ ➤ .nightmode <on/off>
-║ ➤ .clear
-║ ➤ .tag <message>
-║ ➤ .tagall
-║ ➤ .tagnotadmin
-║ ➤ .hidetag <message>
-║ ➤ .chatbot
-║ ➤ .resetlink
-║ ➤ .welcome <on/off>
-║ ➤ .goodbye <on/off>
-║ ➤ .setgdesc <description>
-║ ➤ .setgname <new name>
-║ ➤ .setgpp (reply to image)
-╚═══════════════════╝
-
-╔═══════════════════╗
-🔒 *Owner Commands*:
-║ ➤ .creategroup <name> | @user
-║ ➤ .leave (Bot leaves group)
-║ ➤ .broadcast <message>
-║ ➤ .backup (Get Database)
-║ ➤ .eval <code>
-║ ➤ .mode <public/private>
-║ ➤ .clearsession
-║ ➤ .setprefix <symbol/none>
-║ ➤ .antidelete
-║ ➤ .cleartmp
-║ ➤ .update
-║ ➤ .settings
-║ ➤ .setbotpp <reply to image>
-║ ➤ .setmenuimage <reply to image>
-║ ➤ .setpp <reply to image>
-║ ➤ .savestatus <reply to status>
-║ ➤ .tostatus <reply to media>
-║ ➤ .togstatus <reply to media>
-║ ➤ .autoreact <on/off>
-║ ➤ .autostatus <on/off>
-║ ➤ .autostatus react <on/off>
-║ ➤ .autotyping <on/off>
-║ ➤ .autoread <on/off>
-║ ➤ .autobio <on/off>
-║ ➤ .alwaysonline <on/off>
-║ ➤ .anticall <on/off>
-║ ➤ .pmblocker <on/off/status>
-║ ➤ .pmblocker setmsg <text>
-║ ➤ .setmention <reply to msg>
-║ ➤ .mention <on/off>
-╚═══════════════════╝
-
-╔═══════════════════╗
-🎨 *Image/Sticker Commands*:
-║ ➤ .blur <image>
-║ ➤ .simage <reply to sticker>
-║ ➤ .sticker <reply to image>
-║ ➤ .removebg
-║ ➤ .remini
-║ ➤ .crop <reply to image>
-║ ➤ .tgsticker <Link>
-║ ➤ .meme
-║ ➤ .take <packname> 
-║ ➤ .emojimix <emj1>+<emj2>
-║ ➤ .igs <insta link>
-║ ➤ .igsc <insta link>
-╚═══════════════════╝  
-
-╔═══════════════════╗
-🖼️ *Pies Commands*:
-║ ➤ .pies <country>
-║ ➤ .china 
-║ ➤ .indonesia 
-║ ➤ .japan 
-║ ➤ .korea 
-║ ➤ .hijab
-╚═══════════════════╝
-
-╔═══════════════════╗
-🎮 *Game Commands*:
-║ ➤ .tictactoe @user
-║ ➤ .hangman
-║ ➤ .guess <letter>
-║ ➤ .trivia
-║ ➤ .answer <answer>
-║ ➤ .truth
-║ ➤ .dare
-╚═══════════════════╝
-
-╔═══════════════════╗
-🤖 *AI Commands*:
-║ ➤ .gpt <question>
-║ ➤ .gemini <question>
-║ ➤ .imagine <prompt>
-║ ➤ .flux <prompt>
-║ ➤ .sora <prompt>
-╚═══════════════════╝
-
-╔═══════════════════╗
-🎯 *Fun Commands*:
-║ ➤ .compliment @user
-║ ➤ .insult @user
-║ ➤ .flirt 
-║ ➤ .shayari
-║ ➤ .goodnight
-║ ➤ .roseday
-║ ➤ .character @user
-║ ➤ .wasted @user
-║ ➤ .ship @user
-║ ➤ .simp @user
-║ ➤ .stupid @user [text]
-╚═══════════════════╝
-
-╔═══════════════════╗
-🔤 *Textmaker*:
-║ ➤ .metallic <text>
-║ ➤ .ice <text>
-║ ➤ .snow <text>
-║ ➤ .impressive <text>
-║ ➤ .matrix <text>
-║ ➤ .light <text>
-║ ➤ .neon <text>
-║ ➤ .devil <text>
-║ ➤ .purple <text>
-║ ➤ .thunder <text>
-║ ➤ .leaves <text>
-║ ➤ .1917 <text>
-║ ➤ .arena <text>
-║ ➤ .hacker <text>
-║ ➤ .sand <text>
-║ ➤ .blackpink <text>
-║ ➤ .glitch <text>
-║ ➤ .fire <text>
-╚═══════════════════╝
-
-╔═══════════════════╗
-📥 *Downloader*:
-║ ➤ .play <song_name>
-║ ➤ .song <song_name>
-║ ➤ .spotify <query>
-║ ➤ .instagram <link>
-║ ➤ .facebook <link>
-║ ➤ .tiktok <link>
-║ ➤ .video <song name>
-║ ➤ .ytmp4 <Link>
-╚═══════════════════╝
-
-╔═══════════════════╗
-🧩 *MISC*:
-║ ➤ .heart
-║ ➤ .horny
-║ ➤ .circle
-║ ➤ .lgbt
-║ ➤ .lolice
-║ ➤ .its-so-stupid
-║ ➤ .namecard 
-║ ➤ .oogway
-║ ➤ .tweet
-║ ➤ .ytcomment 
-║ ➤ .comrade 
-║ ➤ .gay 
-║ ➤ .glass 
-║ ➤ .jail 
-║ ➤ .passed 
-║ ➤ .triggered
-╚═══════════════════╝
-
-╔═══════════════════╗
-🖼️ *ANIME*:
-║ ➤ .nom 
-║ ➤ .poke 
-║ ➤ .cry 
-║ ➤ .kiss 
-║ ➤ .pat 
-║ ➤ .hug 
-║ ➤ .wink 
-║ ➤ .facepalm 
-╚═══════════════════╝
-
-╔═══════════════════╗
-💻 *Github Commands:*
-║ ➤ .git
-║ ➤ .github
-║ ➤ .sc
-║ ➤ .script
-║ ➤ .repo
-╚═══════════════════╝
-
-🚀 *FULLY POWERED BY LEE TECH*
-Join our channel for updates:`;
+    const helpMessage = buildMenu();
+    const image = getMenuImage();
+    const contextInfo = {
+        forwardingScore: 1,
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+            newsletterJid: '120363404186001130@newsletter',
+            newsletterName: 'LEE TECHBOT MD',
+            serverMessageId: -1
+        }
+    };
 
     try {
-        // Look for custom menu image first, then fallback to default assets image
-        const customImagePath = path.join(__dirname, '../menu.jpg');
-        const defaultImagePath = path.join(__dirname, '../assets/bot_image.jpg');
-        
-        let imageBuffer = null;
-
-        if (fs.existsSync(customImagePath)) {
-            imageBuffer = fs.readFileSync(customImagePath);
-        } else if (fs.existsSync(defaultImagePath)) {
-            imageBuffer = fs.readFileSync(defaultImagePath);
+        if (image) {
+            return await sock.sendMessage(chatId, { image, caption: helpMessage, contextInfo }, { quoted: message });
         }
-        
-        if (imageBuffer) {
-            await sock.sendMessage(chatId, {
-                image: imageBuffer,
-                caption: helpMessage,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363404186001130@newsletter',
-                        newsletterName: 'LEE TECHBOT MD',
-                        serverMessageId: -1
-                    }
-                }
-            },{ quoted: message });
-        } else {
-            console.error('No menu image found! Checked for menu.jpg and assets/bot_image.jpg');
-            await sock.sendMessage(chatId, { 
-                text: helpMessage,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363404186001130@newsletter',
-                        newsletterName: 'FULLY POWERED BY LEE TECH',
-                        serverMessageId: -1
-                    } 
-                }
-            });
-        }
+        return await sock.sendMessage(chatId, { text: helpMessage, contextInfo }, { quoted: message });
     } catch (error) {
-        console.error('Error in help command:', error);
-        await sock.sendMessage(chatId, { text: helpMessage });
+        console.error('Menu send error:', error.message);
+        return sock.sendMessage(chatId, { text: helpMessage }, { quoted: message });
     }
 }
 
 module.exports = helpCommand;
+module.exports.buildMenu = buildMenu;
