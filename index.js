@@ -309,8 +309,8 @@ async function startXeonBotInc() {
             
             if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
                 try {
-                    rmSync('./session', { recursive: true, force: true })
-                    console.log(chalk.yellow('Session folder deleted. Please re-authenticate.'))
+                    rmSync(authDir, { recursive: true, force: true })
+                    console.log(chalk.yellow(`Auth directory deleted: ${authDir}. Please re-authenticate.`))
                 } catch (error) {
                     console.error('Error deleting session:', error)
                 }
