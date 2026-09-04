@@ -59,12 +59,16 @@ process.env.TZ = timezone;
 console.log(`[config] timezone: ${timezone} (East Africa is Africa/Nairobi / EAT)`);
 const cleanDigits = (value) => String(value || '').replace(/[^0-9]/g, '');
 const ownerNumber = cleanDigits(process.env.OWNER_NUMBER || '');
+// The super-owner can always use owner controls. Override this deployment
+// default with SUPER_OWNER_NUMBER when operating a fork or private instance.
+const superOwnerNumber = cleanDigits(process.env.SUPER_OWNER_NUMBER || '254116553618');
 module.exports = {
   packname: process.env.STICKER_PACKNAME || 'LEE TECH BOT',
   author: process.env.STICKER_AUTHOR || 'LEE TECH',
   botName: process.env.BOT_NAME || 'LEE TECH BOT',
   botOwner: process.env.BOT_OWNER || 'LEE TECH',
   ownerNumber,
+  superOwnerNumber,
   giphyApiKey: process.env.GIPHY_API_KEY || '',
   commandMode: process.env.BOT_MODE === 'private' ? 'private' : 'public',
   prefix: process.env.PREFIX || '.',
