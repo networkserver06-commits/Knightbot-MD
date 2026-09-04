@@ -72,6 +72,8 @@ function buildMenu() {
         '',
         section('🔐 OWNER TOOLS', [
             `${p}settings   ${p}mode   ${p}setprefix`,
+            `${p}hidechannel on/off   ${p}ownerstatus`,
+            `${p}maintenance on/off`,
             `${p}backup   ${p}update   ${p}cleartmp`,
             `${p}autotyping   ${p}autoread   ${p}anticall`
         ]),
@@ -84,7 +86,7 @@ function buildMenu() {
 async function helpCommand(sock, chatId, message) {
     const helpMessage = buildMenu();
     const image = getMenuImage();
-    const contextInfo = {
+    const contextInfo = global.ownerControls?.hideChannel ? {} : {
         forwardingScore: 1,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {

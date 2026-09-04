@@ -61,6 +61,7 @@ const { fetchBuffer } = require('./lib/myfunc');
 const { isSudo } = require('./lib/index');
 const isOwnerOrSudo = require('./lib/isOwner');
 const isAdmin = require('./lib/isAdmin');
+const { ownerControlsCommand } = require('./commands/ownercontrols');
 
 // Auto Features
 const { autotypingCommand, handleAutotypingForMessage, showTypingAfterCommand } = require('./commands/autotyping');
@@ -213,8 +214,10 @@ global.author = settings.author || 'Bot';
 global.channelLink = settings.channelLink || "https://whatsapp.com/channel/0029VbBu1EgJUM2iVI3tPE0S";
 global.ytch = "@ServerNetwork-yt";
 
-const channelInfo = {
-    contextInfo: {
+const channelInfo = {};
+Object.defineProperty(channelInfo, 'contextInfo', {
+    enumerable: true,
+    get: () => global.ownerControls?.hideChannel ? undefined : {
         forwardingScore: 1,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
@@ -223,7 +226,7 @@ const channelInfo = {
             serverMessageId: -1
         }
     }
-};
+});
 
 // ==========================================
 // 5. MAIN MESSAGE HANDLER
@@ -305,6 +308,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
             if (typeof data.isPublic === 'boolean') isPublic = data.isPublic;
         } catch (error) {}
         const isOwnerOrSudoCheck = message.key.fromMe || senderIsOwnerOrSudo;
+        if (global.ownerControls?.maintenance && !isOwnerOrSudoCheck) return;
 
         // Fast lane: these read-only commands do not need group metadata or
         // moderation checks, so they remain responsive on busy groups.
@@ -450,7 +454,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         const adminCommands = ['.add', '.groupvcf', '.savecontacts', '.extract', '.mute', '.unmute', '.link', '.ban', '.unban', '.promote', '.demote', '.kick', "antifake", '.tagall', '.tagnotadmin', '.hidetag', '.antilink', '.antiphoto', '.antisticker', '.antitag', '.antimention', '.setgdesc', '.setgname', '.setgpp', '.kickall'];
         const isAdminCommand = adminCommands.some(cmd => userMessage.startsWith(cmd));
 
-        const ownerCommands = ['.mode', '.autostatus', '.antidelete', '.cleartmp', '.setpp', '.tostatus', '.togstatus', '.clearsession', '.creategroup', '.areact', '.autoreact', '.decrypt', '.autotyping', '.autoread', '.pmblocker', '.update', '.setpayment', '.setprefix'];
+        const ownerCommands = ['.mode', '.autostatus', '.antidelete', '.cleartmp', '.setpp', '.tostatus', '.togstatus', '.clearsession', '.creategroup', '.areact', '.autoreact', '.decrypt', '.autotyping', '.autoread', '.pmblocker', '.update', '.setpayment', '.setprefix', '.hidechannel', '.maintenance', '.ownerstatus'];
         const isOwnerCommand = ownerCommands.some(cmd => userMessage.startsWith(cmd));
 
         if (isGroup && isAdminCommand) {
@@ -728,6 +732,14 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
             case userMessage === '.settings':
                 await settingsCommand(sock, chatId, message);
+                commandExecuted = true;
+                break;
+            case userMessage.startsWith('.hidechannel') || userMessage.startsWith('.maintenance') || userMessage.startsWith('.ownerstatus'):
+                {
+                    const parts = userMessage.trim().split(/\s+/);
+                    const control = parts[0].slice(1);
+                    await ownerControlsCommand(sock, chatId, message, `${control} ${parts.slice(1).join(' ')}`.trim());
+                }
                 commandExecuted = true;
                 break;
             case userMessage.startsWith('.mode'):
