@@ -201,6 +201,8 @@ const pairCommand = require('./commands/pair');
 const systemCommand = require('./commands/system');
 const { paymentCommand, setPaymentCommand } = require('./commands/payment');
 const { designCommand } = require('./commands/design');
+const { speedCommand, uptimeCommand, idCommand, botInfoCommand, healthCommand } = require('./commands/utility');
+const downloadCommand = require('./commands/download');
 
 
 // ==========================================
@@ -308,11 +310,16 @@ async function handleMessages(sock, messageUpdate, printLog) {
         // moderation checks, so they remain responsive on busy groups.
         const fastCommand = userMessage.split(/\s+/)[0];
         const fastPrefix = global.prefix === 'none' ? '.' : (global.prefix || '.');
-        const isFastCommand = userMessage.startsWith(fastPrefix) && ['.ping', '.help', '.menu', '.alive', '.system', '.stats'].includes(fastCommand);
+        const isFastCommand = userMessage.startsWith(fastPrefix) && ['.ping', '.help', '.menu', '.alive', '.system', '.stats', '.speed', '.uptime', '.runtime', '.id', '.botinfo', '.health'].includes(fastCommand);
         if (isFastCommand) {
             if (fastCommand === '.ping') await pingCommand(sock, chatId, message);
             else if (fastCommand === '.help' || fastCommand === '.menu') await helpCommand(sock, chatId, message);
             else if (fastCommand === '.alive') await aliveCommand(sock, chatId, message);
+            else if (fastCommand === '.speed') await speedCommand(sock, chatId, message);
+            else if (fastCommand === '.uptime' || fastCommand === '.runtime') await uptimeCommand(sock, chatId, message);
+            else if (fastCommand === '.id') await idCommand(sock, chatId, message);
+            else if (fastCommand === '.botinfo') await botInfoCommand(sock, chatId, message);
+            else if (fastCommand === '.health') await healthCommand(sock, chatId, message);
             else await systemCommand(sock, chatId, message);
             return;
         }
@@ -1273,6 +1280,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 break;
             case userMessage.startsWith('.video') || userMessage.startsWith('.ytmp4'):
                 await videoCommand(sock, chatId, message);
+                commandExecuted = true;
+                break;
+
+            case userMessage.startsWith('.download') || userMessage.startsWith('.dl'):
+                await downloadCommand(sock, chatId, message);
                 commandExecuted = true;
                 break;
             case userMessage.startsWith('.tiktok') || userMessage.startsWith('.tt'):

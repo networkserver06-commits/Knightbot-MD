@@ -1,6 +1,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const settings = require('../settings');
 
 async function facebookCommand(sock, chatId, message) {
     let tempPath = null; // Declare up here for safe cleanup
@@ -80,7 +81,7 @@ async function facebookCommand(sock, chatId, message) {
                 // This prevents the bot from crashing on large "full" videos.
                 video: { url: tempPath }, 
                 mimetype: "video/mp4",
-                caption: `𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 ${BOT_NAME}\n\n📝 *Title:* ${title}\n⚖️ *Size:* ${(stats.size / (1024 * 1024)).toFixed(2)} MB`,
+                caption: `𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 ${settings.botName}\n\n📝 *Title:* ${title}\n⚖️ *Size:* ${(stats.size / (1024 * 1024)).toFixed(2)} MB`,
             }, { quoted: message });
             
             await sock.sendMessage(chatId, { react: { text: '✅', key: message.key } });

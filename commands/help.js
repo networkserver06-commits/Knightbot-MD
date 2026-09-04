@@ -32,7 +32,8 @@ function buildMenu() {
         `╰━━━━━━━━━━━━━━━━━━━━╯`,
         '',
         section('⚡ QUICK START', [
-            `${p}ping   ${p}alive   ${p}system`,
+            `${p}ping   ${p}speed   ${p}uptime`,
+            `${p}health   ${p}botinfo   ${p}id`,
             `${p}owner   ${p}groupinfo   ${p}staff`,
             `${p}help <command> for detailed usage`
         ]),
@@ -50,6 +51,7 @@ function buildMenu() {
         ]),
         '',
         section('📥 DOWNLOADS', [
+            `${p}download <YouTube/TikTok/Instagram/Facebook link>`,
             `${p}play <song>   ${p}song <song>   ${p}spotify <query>`,
             `${p}tiktok <url>   ${p}instagram <url>   ${p}facebook <url>`,
             `${p}video <query>   ${p}ss <url>`
