@@ -204,6 +204,9 @@ const { paymentCommand, setPaymentCommand } = require('./commands/payment');
 const { designCommand } = require('./commands/design');
 const { speedCommand, uptimeCommand, idCommand, botInfoCommand, healthCommand } = require('./commands/utility');
 const downloadCommand = require('./commands/download');
+const adminStatusCommand = require('./commands/adminstatus');
+const groupStatsCommand = require('./commands/groupstats');
+const eatTimeCommand = require('./commands/eat');
 
 
 // ==========================================
@@ -314,10 +317,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
         // moderation checks, so they remain responsive on busy groups.
         const fastCommand = userMessage.split(/\s+/)[0];
         const fastPrefix = global.prefix === 'none' ? '.' : (global.prefix || '.');
-        const isFastCommand = userMessage.startsWith(fastPrefix) && ['.ping', '.help', '.menu', '.alive', '.system', '.stats', '.speed', '.uptime', '.runtime', '.id', '.botinfo', '.health'].includes(fastCommand);
+        const isFastCommand = userMessage.startsWith(fastPrefix) && ['.ping', '.help', '.menu', '.commands', '.alive', '.system', '.stats', '.speed', '.uptime', '.runtime', '.id', '.botinfo', '.health'].includes(fastCommand);
         if (isFastCommand) {
             if (fastCommand === '.ping') await pingCommand(sock, chatId, message);
-            else if (fastCommand === '.help' || fastCommand === '.menu') await helpCommand(sock, chatId, message);
+            else if (fastCommand === '.help' || fastCommand === '.menu' || fastCommand === '.commands') await helpCommand(sock, chatId, message);
             else if (fastCommand === '.alive') await aliveCommand(sock, chatId, message);
             else if (fastCommand === '.speed') await speedCommand(sock, chatId, message);
             else if (fastCommand === '.uptime' || fastCommand === '.runtime') await uptimeCommand(sock, chatId, message);
@@ -681,7 +684,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 await unbanCommand(sock, chatId, message);
                 commandExecuted = true;
                 break;
-            case userMessage === '.help' || userMessage === '.menu' || userMessage === '.bot' || userMessage === '.list':
+            case userMessage === '.help' || userMessage === '.menu' || userMessage === '.commands' || userMessage === '.bot' || userMessage === '.list':
                 await helpCommand(sock, chatId, message, global.channelLink);
                 commandExecuted = true;
                 break;
@@ -1133,6 +1136,18 @@ async function handleMessages(sock, messageUpdate, printLog) {
                     break;
                 }
                 await staffCommand(sock, chatId, message);
+                commandExecuted = true;
+                break;
+            case commandToken === '.adminstatus':
+                await adminStatusCommand(sock, chatId, message, senderId, isGroup, isOwnerOrSudoCheck);
+                commandExecuted = true;
+                break;
+            case commandToken === '.groupstats':
+                await groupStatsCommand(sock, chatId, message, isGroup);
+                commandExecuted = true;
+                break;
+            case commandToken === '.eat' || commandToken === '.eattime' || commandToken === '.time':
+                await eatTimeCommand(sock, chatId, message);
                 commandExecuted = true;
                 break;
             case commandToken === '.tourl' || commandToken === '.url':

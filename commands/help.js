@@ -33,8 +33,9 @@ function buildMenu() {
         '',
         section('⚡ QUICK START', [
             `${p}ping   ${p}speed   ${p}uptime`,
-            `${p}health   ${p}botinfo   ${p}id`,
+            `${p}health   ${p}botinfo   ${p}id   ${p}adminstatus`,
             `${p}owner   ${p}groupinfo   ${p}staff   ${p}jid`,
+            `${p}groupstats   ${p}eat   ${p}time`,
             `${p}help <command> for detailed usage`,
             `${p}help admin   ${p}help owner   ${p}help download`
         ]),
@@ -99,7 +100,7 @@ function messageText(message) {
 function buildDetails(topic) {
     const p = global.prefix === 'none' ? '.' : (global.prefix || '.');
     const topics = {
-        admin: `🛡️ *ADMIN GUIDE*\n\n${p}kick @user\n${p}promote @user\n${p}demote @user\n${p}mute @user\n${p}warn @user reason\n${p}antilink on/off\n${p}antispam on/off\n${p}welcome on/off\n${p}goodbye on/off\n\nThe sender must be a group admin, and the bot must also be a group admin for moderation actions.`,
+        admin: `🛡️ *ADMIN GUIDE*\n\n${p}adminstatus\n${p}groupstats\n${p}kick @user\n${p}promote @user\n${p}demote @user\n${p}mute @user\n${p}warn @user reason\n${p}antilink on/off\n${p}antispam on/off\n${p}welcome on/off\n${p}goodbye on/off\n\nThe sender must be a group admin, and the bot must also be a group admin for moderation actions.`,
         owner: `🔐 *OWNER GUIDE*\n\n${p}mode public/private\n${p}setprefix .\n${p}hidechannel on/off\n${p}maintenance on/off\n${p}ownerstatus\n${p}clearsession\n${p}cleartmp\n${p}backup\n${p}update\n${p}tostatus (reply to text/image/video)\n${p}togstatus (reply in a group; group audience)\n${p}savestatus or ${p}statusdl (reply to a status)\n\nOwner tools are restricted to the configured owner or sudo account.`,
         download: `📥 *DOWNLOAD GUIDE*\n\n${p}download <social link>\n${p}tiktok <url>\n${p}instagram <url>\n${p}facebook <url>\n${p}play <song>\n${p}song <song>\n${p}spotify <query>\n${p}video <query>\n${p}ss <url>\n${p}url or ${p}tourl (reply to image/video)\n\nUse direct public links and avoid repeated requests to reduce rate limits.`,
         ai: `✨ *AI GUIDE*\n\n${p}gpt <question>\n${p}gemini <question>\n${p}chatbot on/off\n${p}imagine <prompt>\n${p}translate <text> <language>\n${p}tts <text>`
