@@ -59,7 +59,7 @@ cd LEE-TECHBOT-MD
 npm run deploy:termux
 ```
 
-On a VPS, install Node.js, Git, and FFmpeg, then run `npm run deploy:terminal`. Termux and VPS deployments must keep `./session` persistent and run only one bot process per session. The core WhatsApp connection does not depend on sharp; if Android cannot build its native module, only sharp-based image commands are unavailable.
+On a VPS, install Node.js, Git, and FFmpeg, then run `npm run deploy:terminal`. Termux and VPS deployments must keep `./session` persistent and run only one bot process per session. Termux intentionally skips the unsupported Android ARM64 sharp package; the core WhatsApp connection does not depend on sharp, so only sharp-based image commands are unavailable on Termux. VPS/Linux installs still build sharp normally.
 
 ## Katabump panel linking-code deployment
 
