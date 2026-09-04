@@ -74,6 +74,7 @@ async function settingsCommand(sock, chatId, message) {
             // New Features from Live Global Memory
             lines.push(`🚫 *Anti-Sticker:* ${getGroupState(global.antistickerState)}`);
             lines.push(`🖼️ *Anti-Photo:* ${getGroupState(global.antiphotoState)}`);
+            lines.push(`👁️ *Anti-ViewOnce:* ${getGroupState(global.antiviewonceState)}`);
             lines.push(`🛡️ *Anti-Fake / Links:* ${getGroupState(global.antifakeState)}`);
             
             // Anti-Bot is now a group-specific object, so we extract the status and action!

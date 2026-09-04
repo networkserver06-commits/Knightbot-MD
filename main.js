@@ -73,12 +73,14 @@ const { autoStatusCommand, handleStatusUpdate } = require('./commands/autostatus
 // Moderation (FIXED ANTILINK IMPORTS)
 const { antistickerCommand, checkAntiSticker } = require('./commands/antisticker');
 const { antiphotoCommand, checkAntiPhoto } = require('./commands/antiphoto');
+const { antiviewonceCommand, checkAntiViewOnce } = require('./commands/antiviewonce');
 const { antifakeCommand, checkFakeLinks } = require('./commands/antifake'); 
 const { antibotCommand, checkAntiBot } = require('./commands/antibot'); 
 const { handleAntiBadwordCommand, handleBadwordDetection } = require('./lib/antibadword');
 const { Antilink } = require('./lib/antilink'); 
 const { handleAntilinkCommand } = require('./commands/antilink'); // <== FIXED IMPORT PATH
 const { antimentionCommand, checkAntiMention } = require('./commands/antimention'); 
+const groupModeCommand = require('./commands/groupmode');
 
 // Commands
 const pingCommand = require('./commands/ping');
@@ -382,6 +384,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
             if (await checkAntiBot(sock, chatId, message, isGroup, isSenderAdmin, isBotAdmin, senderId).catch(()=>false)) return; 
             if (await checkAntiSticker(sock, chatId, message, isGroup, isSenderAdmin, isBotAdmin, senderId).catch(()=>false)) return;
             if (await checkAntiPhoto(sock, chatId, message, isGroup, isSenderAdmin, isBotAdmin, senderId).catch(()=>false)) return;
+            if (await checkAntiViewOnce(sock, chatId, message, isGroup, isSenderAdmin, isBotAdmin, senderId).catch(()=>false)) return;
             if (await checkFakeLinks(sock, chatId, message, isGroup, isSenderAdmin, isBotAdmin, senderId).catch(()=>false)) return; 
             
             if (typeof checkAntiMention === 'function') {
@@ -659,6 +662,14 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
             case userMessage.startsWith('.antiphoto'):
                 await antiphotoCommand(sock, chatId, message, isGroup, isSenderAdmin, isBotAdmin, isOwnerOrSudoCheck, userMessage);
+                commandExecuted = true;
+                break;
+            case commandToken === '.antiviewonce':
+                await antiviewonceCommand(sock, chatId, message, isGroup, isSenderAdmin, isOwnerOrSudoCheck, userMessage);
+                commandExecuted = true;
+                break;
+            case commandToken === '.open' || commandToken === '.close' || commandToken === '.groupopen' || commandToken === '.groupclose' || commandToken === '.announce' || commandToken === '.unannounce':
+                await groupModeCommand(sock, chatId, message, isGroup, isSenderAdmin, isBotAdmin, isOwnerOrSudoCheck, userMessage);
                 commandExecuted = true;
                 break;
              case userMessage === '.link' || userMessage === '.grouplink':
