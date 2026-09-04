@@ -526,7 +526,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 commandExecuted = true;
                 break;
 
-            case userMessage === '.savestatus': {
+            case commandToken === '.savestatus' || commandToken === '.statusdl': {
                 const quotedMsg = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
                 const participant = message.message?.extendedTextMessage?.contextInfo?.participant;
                 if (!quotedMsg || !participant?.includes('status@broadcast')) {
