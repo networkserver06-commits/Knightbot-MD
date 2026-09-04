@@ -229,9 +229,12 @@ async function startXeonBotInc() {
     if (pairingCode && !XeonBotInc.authState.creds.registered) {
         if (useMobile) throw new Error('Cannot use pairing code with mobile api')
 
-        let requestedPhoneNumber = ''
+        let requestedPhoneNumber = phoneNumber
         do {
-            requestedPhoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Enter WhatsApp phone number for pairing code:\nInclude country code digits, without +, spaces, or dashes.\nExample: 254116553618 or 254723456789\nNumber: `)))
+            if (!requestedPhoneNumber && (rl.closed || process.stdin.readableEnded)) {
+                throw Object.assign(new Error('Pairing input console is closed and PHONE_NUMBER is not configured'), { code: 'PAIRING_INPUT_CLOSED' })
+            }
+            if (!requestedPhoneNumber) requestedPhoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Enter WhatsApp phone number for pairing code:\nInclude country code digits, without +, spaces, or dashes.\nExample: 254116553618 or 254723456789\nNumber: `)))
             requestedPhoneNumber = normalizeWhatsAppNumber(requestedPhoneNumber)
             if (!requestedPhoneNumber) {
                 console.log(chalk.red('Please enter the complete international number, for example 254781231617 or +254 781 231 617. Try again.'))
