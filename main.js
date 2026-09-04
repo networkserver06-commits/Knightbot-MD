@@ -86,6 +86,7 @@ const groupModeCommand = require('./commands/groupmode');
 // Commands
 const pingCommand = require('./commands/ping');
 const helpCommand = require('./commands/help');
+const { parsePrefixArgument } = require('./lib/prefix');
 const ownerCommand = require('./commands/owner');
 const vv2Command = require('./commands/vv2');
 const toStatusCommand = require('./commands/tostatus');
@@ -578,13 +579,13 @@ async function handleMessages(sock, messageUpdate, printLog) {
                     await sock.sendMessage(chatId, { text: '❌ Only the bot owner can change the prefix.', ...channelInfo }, { quoted: message });
                     break;
                 }
-                const newPrefix = rawText.trim().split(/\s+/)[1] || '';
-                if (!newPrefix || /\s/u.test(newPrefix)) {
-                    await sock.sendMessage(chatId, { text: '📝 Please provide one prefix token, including emoji or Unicode. Use `none` for no prefix.\nExample: .setprefix 🔥', ...channelInfo }, { quoted: message });
+                const parsedPrefix = parsePrefixArgument(rawText);
+                if (!parsedPrefix.valid) {
+                    await sock.sendMessage(chatId, { text: `📝 Use one letter, symbol, emoji, or \`none\`.\nExamples: .setprefix !   .setprefix 🔥   .setprefix none\n\n❌ ${parsedPrefix.reason}`, ...channelInfo }, { quoted: message });
                     break;
                 }
 
-                global.prefix = newPrefix.toLowerCase() === 'none' ? '' : newPrefix;
+                global.prefix = parsedPrefix.value;
                 const displayPrefix = global.prefix === '' ? 'none (No prefix)' : global.prefix;
 
                 const prefixPath = path.join(__dirname, './data/prefix.json');

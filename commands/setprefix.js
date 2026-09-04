@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { parsePrefixArgument } = require('../lib/prefix');
 
 const prefixPath = path.join(__dirname, '../data/prefix.json');
 
@@ -8,13 +9,12 @@ const setPrefixCommand = async (sock, chatId, message, isOwnerOrSudoCheck, userM
         return await sock.sendMessage(chatId, { text: '❌ Only the owner can change the prefix.' }, { quoted: message });
     }
 
-    const newPrefix = userMessage.trim().split(/\s+/)[1] || '';
-
-    if (!newPrefix || /\s/u.test(newPrefix)) {
-        return await sock.sendMessage(chatId, { text: '📝 Usage: .setprefix [one token]\nExamples: .setprefix !   .setprefix 🔥   .setprefix none' }, { quoted: message });
+    const parsed = parsePrefixArgument(userMessage);
+    if (!parsed.valid) {
+        return await sock.sendMessage(chatId, { text: '📝 Usage: .setprefix [one letter/symbol/emoji]\nExamples: .setprefix !   .setprefix 🔥   .setprefix none\n\n❌ ' + parsed.reason }, { quoted: message });
     }
 
-    const storedPrefix = newPrefix.toLowerCase() === 'none' ? '' : newPrefix;
+    const storedPrefix = parsed.value;
 
     // Save the new prefix permanently
     fs.writeFileSync(prefixPath, JSON.stringify({ prefix: storedPrefix }, null, 2));
