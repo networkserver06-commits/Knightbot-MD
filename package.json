@@ -15,8 +15,8 @@
     "start:fresh": "npm run reset-session && npm start",
     "test": "node --test test/*.test.js",
     "check": "node --check index.js && node --check main.js && npm test",
-    "install:panel": "npm ci --omit=dev --no-audit --no-fund --prefer-offline && npm rebuild sharp --foreground-scripts",
-    "install:terminal": "npm ci --no-audit --no-fund --prefer-offline && npm rebuild sharp --foreground-scripts",
+    "install:panel": "npm ci --omit=dev --no-audit --no-fund --prefer-offline && (npm rebuild sharp --foreground-scripts || echo 'Warning: sharp native build unavailable; core bot remains available')",
+    "install:terminal": "npm ci --no-audit --no-fund --prefer-offline && (npm rebuild sharp --foreground-scripts || echo 'Warning: sharp native build unavailable; core bot remains available')",
     "install:termux": "npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefer-offline && rm -rf node_modules/sharp && echo 'Termux mode: skipped unsupported sharp native module; core bot remains available'",
     "deploy:terminal": "npm run install:terminal && npm run start:terminal",
     "deploy:termux": "npm run install:termux && npm run start:termux",
@@ -52,8 +52,6 @@
     "jimp": "^1.6.0",
     "jsdom": "^22.1.0",
     "libphonenumber-js": "^1.11.18",
-    "libsignal": "^2.0.1",
-    "link-preview-js": "^3.0.5",
     "moment-timezone": "^0.5.43",
     "mumaker": "^2.0.0",
     "node-cache": "^5.1.2",
@@ -67,16 +65,13 @@
     "qrcode": "^1.5.0",
     "qrcode-reader": "^1.0.4",
     "qrcode-terminal": "^0.12.0",
-    "request": "^2.88.2",
     "ruhend-scraper": "^8.3.0",
     "safe-stable-stringify": "^2.5.0",
     "set-cookie": "^0.0.4",
     "tough-cookie": "^5.0.0",
-    "translate-google-api": "^1.0.4",
     "ws": "^8.17.1",
     "yargs": "^17.6.0",
     "yargs-parser": "^21.1.1",
-    "youtube-yts": "^2.0.0",
     "youtubedl-core": "^4.11.7",
     "yt-search": "^2.12.1",
     "ytdl-core": "^4.11.5"
@@ -88,6 +83,6 @@
     "node": ">=18.0.0"
   },
   "optionalDependencies": {
-    "sharp": "^0.32.6"
+    "sharp": "^0.35.4"
   }
 }
