@@ -55,7 +55,7 @@ store.readFromFile()
 const settings = require('./settings')
 setInterval(() => store.writeToFile(), settings.storeWriteInterval || 10000)
 let reconnectAttempts = 0
-const connectionNoticePath = path.join(process.cwd(), 'temp', 'connection-notice.json')
+const connectionNoticePath = path.join(process.env.AUTH_DIR || './session', '.connection-notice.json')
 let hasAnnouncedConnection = Boolean(readJson(connectionNoticePath, {}).sent)
 
 // Memory optimization - Force garbage collection if available
