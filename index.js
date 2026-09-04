@@ -226,19 +226,16 @@ async function startXeonBotInc() {
     if (pairingCode && !XeonBotInc.authState.creds.registered) {
         if (useMobile) throw new Error('Cannot use pairing code with mobile api')
 
-        let requestedPhoneNumber = phoneNumber
-        if (process.stdin.readable) {
+        let requestedPhoneNumber = ''
+        do {
             requestedPhoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Enter WhatsApp phone number for pairing code:\nInclude country code digits, without +, spaces, or dashes.\nExample: 254116553618 or 254723456789\nNumber: `)))
-        }
-
-        // Clean the phone number - remove any non-digit characters
-        requestedPhoneNumber = String(requestedPhoneNumber || '').replace(/[^0-9]/g, '')
-
-        // Basic length validation (Bypassing strict awesome-phonenumber rules for newer Safaricom lines)
-        if (requestedPhoneNumber.length < 10 || requestedPhoneNumber.length > 15) {
-            console.log(chalk.red('Invalid length. Please enter a valid 10-15 digit international number (e.g., your international number) without + or spaces.'));
-            process.exit(1);
-        }
+            // Clean the phone number - remove any non-digit characters.
+            requestedPhoneNumber = String(requestedPhoneNumber || '').replace(/[^0-9]/g, '')
+            if (requestedPhoneNumber.length < 10 || requestedPhoneNumber.length > 15) {
+                console.log(chalk.red('Please enter a valid 10-15 digit international number. Try again.'))
+                requestedPhoneNumber = ''
+            }
+        } while (!requestedPhoneNumber)
         setTimeout(async () => {
             try {
                 console.log(chalk.cyan(`Requesting WhatsApp pairing code for ${requestedPhoneNumber}...`))
