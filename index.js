@@ -55,6 +55,8 @@ store.readFromFile()
 const settings = require('./settings')
 setInterval(() => store.writeToFile(), settings.storeWriteInterval || 10000)
 let reconnectAttempts = 0
+const connectionNoticePath = path.join(process.cwd(), 'temp', 'connection-notice.json')
+let hasAnnouncedConnection = Boolean(readJson(connectionNoticePath, {}).sent)
 
 // Memory optimization - Force garbage collection if available
 setInterval(() => {
@@ -284,23 +286,18 @@ async function startXeonBotInc() {
             console.log(chalk.magenta(` `))
             console.log(chalk.yellow(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
 
-            try {
-                const botNumber = XeonBotInc.user.id.split(':')[0] + '@s.whatsapp.net';
-                await XeonBotInc.sendMessage(botNumber, {
-                    text: `🤖 Bot Connected Successfully!\n\n⏰ Time: ${new Date().toLocaleString()}\n✅ Status: Online and Ready!\n\n✅Make sure to join below channel`,
-                    contextInfo: {
-                        forwardingScore: 1,
-                        isForwarded: true,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '120363404186001130@newsletter',
-                            newsletterName: 'LEE TECHBot MD',
-                            newsletterName: 'LEETECHBot MD',
-                            serverMessageId: -1
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Error sending connection message:', error.message)
+            if (!hasAnnouncedConnection) {
+                hasAnnouncedConnection = true
+                try {
+                    const botNumber = XeonBotInc.user.id.split(':')[0] + '@s.whatsapp.net';
+                    await XeonBotInc.sendMessage(botNumber, {
+                        text: `🤖 Bot connected successfully for the first time in this run.\n\n⏰ Time: ${new Date().toLocaleString()}\n✅ Status: Online and ready!`,
+                    });
+                    fs.mkdirSync(path.dirname(connectionNoticePath), { recursive: true })
+                    fs.writeFileSync(connectionNoticePath, JSON.stringify({ sent: true, sentAt: new Date().toISOString() }))
+                } catch (error) {
+                    console.error('Error sending initial connection message:', error.message)
+                }
             }
 
             await delay(1999)
