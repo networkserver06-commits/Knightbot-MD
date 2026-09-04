@@ -6,7 +6,7 @@ This release hardens the existing Baileys bot without removing its existing comm
 
 - **Secrets removed from source:** owner number, Giphy key, and provider keys are now read from `.env` or the host’s secret manager.
 - **Owner authorization fixed:** an unset `OWNER_NUMBER` can no longer authorize every sender because an empty string matched every JID.
-- **Startup made safe:** saved sessions reconnect silently; QR login is the default for new sessions, with linking-code mode as an explicit fallback through `AUTH_METHOD=pairing`, `PAIRING_CODE=true`, or `--pairing-code`.
+- **Startup made safe:** saved sessions reconnect silently; linking-code login is the default for new sessions and prompts directly for the phone number, while QR mode is available through `AUTH_METHOD=qr`.
 - **Message resilience added:** duplicate WhatsApp deliveries are ignored, command bursts are rate-limited, and lightweight health metrics are maintained in memory.
 - **State writes made safer:** new runtime helpers support atomic JSON replacement and safe fallback reads, preventing partially-written state files.
 - **Deployment scripts corrected:** the Docker image command is valid, the project has a reproducible `package-lock.json`, and `npm run check` performs syntax and test validation.
@@ -19,7 +19,7 @@ This release hardens the existing Baileys bot without removing its existing comm
 
 1. Copy `.env.example` to `.env`.
 2. Set `OWNER_NUMBER` to the bot owner’s international number, digits only.
-3. Leave `AUTH_METHOD` empty and `PAIRING_CODE=false` for QR-first login. Set `AUTH_METHOD=pairing` and `PHONE_NUMBER` only when using the linking-code fallback.
+3. Leave `PHONE_NUMBER` empty if you want the startup prompt. The default is linking-code login; use `AUTH_METHOD=qr` and `PAIRING_CODE=false` only for QR login.
 4. Add provider keys only for services you actually use.
 5. Keep the `session/` directory private and never commit it.
 6. Install and validate with:
@@ -32,20 +32,21 @@ npm start
 
 The bot defaults to public mode and the `.` prefix. Change `BOT_MODE` and `PREFIX` in `.env` or use the bot’s owner settings where supported.
 
-## Katabump panel QR deployment
+## Katabump panel linking-code deployment
 
 You **do not** need to upload a session file or configure `SESSION_ID`. Add these panel environment variables:
 
 ```env
 PHONE_NUMBER=
-PAIRING_CODE=false
+PAIRING_CODE=true
+AUTH_METHOD=pairing
 USE_MOBILE=false
 AUTH_DIR=./session
 ```
 
-Start the bot with `npm start`. If a saved session exists, it reconnects without asking anything. For a new session, it creates the auth directory automatically and prints a QR code directly in the Katabump logs. Scan it in WhatsApp under **Linked devices → Link a device**. Keep `AUTH_DIR` on persistent panel storage so the bot reconnects without relinking. If Katabump uses ephemeral storage, you must authenticate again after every storage reset.
+Start the bot with `npm start`. If a saved session exists, it reconnects without asking anything. For a new session, it creates the auth directory automatically and prompts directly in the Katabump console for the WhatsApp number. Enter digits with country code, for example `254781231617`; the linking code is then printed in the logs. Keep `AUTH_DIR` on persistent panel storage so the bot reconnects without relinking.
 
-For the linking-code fallback, set `AUTH_METHOD=pairing`, provide `PHONE_NUMBER` in international digits such as `254723...`, and the generated code will be printed after startup. In an interactive terminal with no saved session, the bot asks whether to use QR or linking code and defaults to QR.
+To use QR instead, set `AUTH_METHOD=qr` and `PAIRING_CODE=false`. The linking-code prompt is never shown when a saved session already exists.
 
 ## AI chatbot
 

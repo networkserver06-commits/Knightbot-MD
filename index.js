@@ -75,31 +75,26 @@ setInterval(() => {
     }
 }, 30_000) // check every 30 seconds
 
-let phoneNumber = String(process.env.PHONE_NUMBER || settings.ownerNumber || '').replace(/[^0-9]/g, '')
+let phoneNumber = String(process.env.PHONE_NUMBER || '').replace(/[^0-9]/g, '')
 let owner = readJson('./data/owner.json', { owner: settings.ownerNumber || '' })
 
 global.botname = "LEE TECH BOT"
 global.themeemoji = "•"
-// A saved session reconnects silently. If no session exists, an interactive
-// console asks for QR or pairing-code login; headless panels default to QR.
-let pairingCode = process.env.PAIRING_CODE === 'true' || process.env.AUTH_METHOD === 'pairing' || process.argv.includes("--pairing-code")
+// A saved session reconnects silently. New sessions use linking-code login by
+// default and ask directly for the phone number. Set AUTH_METHOD=qr or
+// PAIRING_CODE=false only when QR login is explicitly preferred.
+let pairingCode = process.env.AUTH_METHOD !== 'qr' && process.env.PAIRING_CODE !== 'false' || process.argv.includes("--pairing-code")
 const useMobile = process.env.USE_MOBILE === 'true' || process.argv.includes("--mobile")
 const authDir = process.env.AUTH_DIR || './session'
 
-if (pairingCode && !phoneNumber && !process.stdin.isTTY) {
-    console.error('PAIRING_CODE is enabled but PHONE_NUMBER is missing. Set PHONE_NUMBER in the Katabump panel.')
-    process.exit(1)
-}
-
-// Only create readline interface if we're in an interactive environment
-const rl = process.stdin.isTTY ? readline.createInterface({ input: process.stdin, output: process.stdout }) : null
+// Katabump consoles can expose stdin without reporting a TTY, so keep the
+// prompt available in both terminal and panel-console deployments.
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: process.stdin.isTTY })
 const question = (text) => {
     if (rl) {
         return new Promise((resolve) => rl.question(text, resolve))
-    } else {
-        // In non-interactive environment, use ownerNumber from settings
-        return Promise.resolve(settings.ownerNumber || phoneNumber)
     }
+    return Promise.resolve(phoneNumber)
 }
 
 
@@ -110,13 +105,6 @@ async function startXeonBotInc() {
         // need to be uploaded beforehand; keep AUTH_DIR on persistent panel
         // storage if you want to avoid relinking after a restart.
         const { state, saveCreds } = await useMultiFileAuthState(authDir)
-        if (!state.creds.registered && !process.env.AUTH_METHOD && !process.env.PAIRING_CODE && process.stdin.isTTY) {
-            const choice = (await question('No saved WhatsApp session. Choose login: [1] QR scan  [2] linking code: ')).trim().toLowerCase()
-            pairingCode = choice === '2' || choice === 'pairing' || choice === 'code'
-            if (pairingCode && !phoneNumber) {
-                phoneNumber = (await question('Enter WhatsApp number with country code, digits only (example 254723...): ')).replace(/[^0-9]/g, '')
-            }
-        }
         const msgRetryCounterCache = new NodeCache()
 
         const XeonBotInc = makeWASocket({
