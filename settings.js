@@ -1,5 +1,26 @@
 'use strict';
-require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
+const dotenv = require('dotenv');
+
+// Katabump may start the process from a working directory different from the
+// repository directory. Try the common panel locations, but never override
+// variables already injected by the panel/container environment.
+const envCandidates = [
+  process.env.ENV_FILE,
+  path.join(process.cwd(), '.env'),
+  path.join(process.cwd(), 'env'),
+  path.join(process.cwd(), 'config.env'),
+  path.join(__dirname, '.env'),
+  '/home/container/.env',
+  '/home/container/env',
+  '/home/container/config.env'
+].filter(Boolean);
+for (const envPath of [...new Set(envCandidates)]) {
+  if (fs.existsSync(envPath) && fs.statSync(envPath).isFile()) {
+    dotenv.config({ path: envPath, override: false, quiet: true });
+  }
+}
 const cleanDigits = (value) => String(value || '').replace(/[^0-9]/g, '');
 const ownerNumber = cleanDigits(process.env.OWNER_NUMBER || '');
 module.exports = {
