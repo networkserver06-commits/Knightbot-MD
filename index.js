@@ -92,10 +92,12 @@ const authDir = process.env.AUTH_DIR || './session'
 // prompt available in both terminal and panel-console deployments.
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: process.stdin.isTTY })
 const question = (text) => {
-    if (rl) {
+    if (rl && !rl.closed) {
         return new Promise((resolve) => rl.question(text, resolve))
     }
-    return Promise.resolve(phoneNumber)
+    const error = new Error('Pairing input console is closed')
+    error.code = 'PAIRING_INPUT_CLOSED'
+    return Promise.reject(error)
 }
 
 
@@ -378,6 +380,11 @@ async function startXeonBotInc() {
     return XeonBotInc
     } catch (error) {
         console.error('Error in startXeonBotInc:', error)
+        if (error?.code === 'PAIRING_INPUT_CLOSED' || error?.code === 'ERR_USE_AFTER_CLOSE') {
+            console.error('Pairing prompt closed before a number was entered. Keep the Katabump console open and restart the server.')
+            process.exitCode = 1
+            return
+        }
         await delay(5000)
         startXeonBotInc()
     }
