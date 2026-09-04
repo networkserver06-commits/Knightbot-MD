@@ -174,11 +174,10 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
 
 async function restartProcess(sock, chatId, message) {
     try {
-        await sock.sendMessage(chatId, { text: '✅ Update complete! Restarting…' }, { quoted: message });
-    } catch {}
-    try {
-        // Preferred: PM2
-        await run('pm2 restart all');
+        // Restart only this bot when PM2 is present. Set PM2_APP_NAME when the
+        // panel/process manager uses a custom application name.
+        const appName = process.env.PM2_APP_NAME || 'leetechbot';
+        await run(`pm2 restart "${appName.replace(/[^a-zA-Z0-9_.-]/g, '')}"`);
         return;
     } catch {}
     // Panels usually auto-restart when the process exits.
@@ -197,32 +196,39 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         return;
     }
     try {
-        // Minimal UX
-        await sock.sendMessage(chatId, { text: '🔄 Updating the bot, please wait…' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '🔄 *Automatic update started*\nChecking GitHub main and preparing the bot…' }, { quoted: message });
         let updatedFromGit = false;
+        let source = 'GitHub main ZIP';
+        let revision = 'main branch';
         if (await hasGitRepo()) {
             try {
                 const { newRev, alreadyUpToDate } = await updateViaGit();
                 console.log(`[update] ${alreadyUpToDate ? 'already current' : 'updated'} at ${newRev}`);
                 updatedFromGit = true;
+                source = alreadyUpToDate ? 'GitHub main (already current)' : 'GitHub main (Git)';
+                revision = newRev.slice(0, 12);
             } catch (gitError) {
                 console.warn('[update] Git update unavailable; using GitHub ZIP fallback:', gitError.message || gitError);
             }
         }
         if (!updatedFromGit) {
+            await sock.sendMessage(chatId, { text: '📦 Downloading the latest GitHub main build…' }, { quoted: message }).catch(() => {});
             await updateViaZip(sock, chatId, message, zipOverride);
         }
         // Ignore lifecycle scripts during WhatsApp-triggered updates. This
         // keeps Termux/Katabump alive when optional native sharp binaries
         // are unavailable; the core bot does not require sharp.
+        await sock.sendMessage(chatId, { text: '📚 Installing dependencies and checking optional modules…' }, { quoted: message }).catch(() => {});
         await run('npm install --no-audit --no-fund --ignore-scripts');
         await run('npm rebuild sharp --foreground-scripts').catch(() => {});
-        try {
-            const v = require('../settings').version || '';
-            await sock.sendMessage(chatId, { text: `✅ Update done. Restarting…` }, { quoted: message });
-        } catch {
-            await sock.sendMessage(chatId, { text: '✅ Restared Successfully\n Type .ping to check latest version.' }, { quoted: message });
-        }
+        const packagePath = path.join(process.cwd(), 'package.json');
+        let version = settings.version || 'unknown';
+        try { version = JSON.parse(fs.readFileSync(packagePath, 'utf8')).version || version; } catch {}
+        await sock.sendMessage(chatId, {
+            text: `✅ *Update completed successfully*\n\nSource: *${source}*\nRevision: *${revision}*\nVersion: *${version}*\n\n♻️ Restarting now. Send .ping after reconnection to verify the bot.`
+        }, { quoted: message });
+        // Give WhatsApp time to accept the success message before the process exits.
+        await new Promise((resolve) => setTimeout(resolve, 1200));
         await restartProcess(sock, chatId, message);
     } catch (err) {
         console.error('Update failed:', err);
