@@ -1135,7 +1135,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 await staffCommand(sock, chatId, message);
                 commandExecuted = true;
                 break;
-            case userMessage.startsWith('.tourl') || userMessage.startsWith('.url'):
+            case commandToken === '.tourl' || commandToken === '.url':
                 await urlCommand(sock, chatId, message);
                 commandExecuted = true;
                 break;
