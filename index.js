@@ -226,27 +226,23 @@ async function startXeonBotInc() {
     if (pairingCode && !XeonBotInc.authState.creds.registered) {
         if (useMobile) throw new Error('Cannot use pairing code with mobile api')
 
-        let phoneNumber
-        if (process.stdin.isTTY) {
-            phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Enter WhatsApp phone number for pairing code:\nInclude country code digits, without +, spaces, or dashes.\nExample: 254116553618 or 254723456789\nNumber: `)))
-        } else if (!!global.phoneNumber) {
-            phoneNumber = global.phoneNumber
-        } else {
-            phoneNumber = String(process.env.PHONE_NUMBER || settings.ownerNumber || phoneNumber)
+        let requestedPhoneNumber = phoneNumber
+        if (process.stdin.readable) {
+            requestedPhoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Enter WhatsApp phone number for pairing code:\nInclude country code digits, without +, spaces, or dashes.\nExample: 254116553618 or 254723456789\nNumber: `)))
         }
 
         // Clean the phone number - remove any non-digit characters
-        phoneNumber = phoneNumber.replace(/[^0-9]/g, '')
+        requestedPhoneNumber = String(requestedPhoneNumber || '').replace(/[^0-9]/g, '')
 
         // Basic length validation (Bypassing strict awesome-phonenumber rules for newer Safaricom lines)
-        if (phoneNumber.length < 10 || phoneNumber.length > 15) {
+        if (requestedPhoneNumber.length < 10 || requestedPhoneNumber.length > 15) {
             console.log(chalk.red('Invalid length. Please enter a valid 10-15 digit international number (e.g., your international number) without + or spaces.'));
             process.exit(1);
         }
         setTimeout(async () => {
             try {
-                console.log(chalk.cyan(`Requesting WhatsApp pairing code for ${phoneNumber}...`))
-                let code = await XeonBotInc.requestPairingCode(phoneNumber)
+                console.log(chalk.cyan(`Requesting WhatsApp pairing code for ${requestedPhoneNumber}...`))
+                let code = await XeonBotInc.requestPairingCode(requestedPhoneNumber)
                 code = code?.match(/.{1,4}/g)?.join("-") || code
                 console.log(chalk.black(chalk.bgGreen(`Your Pairing Code : `)), chalk.black(chalk.white(code)))
                 console.log(chalk.yellow(`\nPlease enter this code in your WhatsApp app:\n1. Open WhatsApp\n2. Go to Settings > Linked Devices\n3. Tap "Link a Device"\n4. Enter the code shown above`))
