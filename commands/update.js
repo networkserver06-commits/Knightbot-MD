@@ -173,6 +173,14 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
 }
 
 async function restartProcess(sock, chatId, message) {
+    global.__updateRestarting = true;
+    try {
+        // Stop Baileys reconnect listeners from competing with the new process.
+        if (sock?.ws && typeof sock.ws.close === 'function') sock.ws.close();
+    } catch (error) {
+        console.warn('[update] Socket close warning:', error.message || error);
+    }
+
     const restartMode = String(process.env.RESTART_MODE || 'auto').toLowerCase();
     if (restartMode === 'none') {
         console.log('[update] Restart disabled by RESTART_MODE=none');
@@ -221,7 +229,7 @@ async function restartProcess(sock, chatId, message) {
     // process with a detached child so the bot comes back without a human.
     try {
         const entry = path.resolve(process.argv[1] || 'index.js');
-        const child = spawn(process.execPath, ['-e', `setTimeout(() => require(${JSON.stringify(entry)}), 1800)`], {
+        const child = spawn(process.execPath, ['-e', `setTimeout(() => require(${JSON.stringify(entry)}), 4500)`], {
             cwd: process.cwd(),
             env: { ...process.env, BOT_RESTARTED_AFTER_UPDATE: '1' },
             detached: true,

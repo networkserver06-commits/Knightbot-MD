@@ -335,6 +335,10 @@ async function startXeonBotInc() {
         }
         
         if (connection === 'close') {
+            if (global.__updateRestarting) {
+                console.log(chalk.yellow('Update restart requested; suppressing reconnect for the closing socket.'))
+                return
+            }
             const shouldReconnect = (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut
             const statusCode = lastDisconnect?.error?.output?.statusCode
             
