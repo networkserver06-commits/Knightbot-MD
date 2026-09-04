@@ -90,6 +90,8 @@ Configure an OpenAI-compatible endpoint, for example `AI_API_URL=https://api.ope
 
 The command burst limit defaults to eight commands per sender per ten seconds. Tune `COMMAND_RATE_LIMIT` and `COMMAND_RATE_WINDOW_MS` for the deployment. `global.botHealth.snapshot()` is available to an internal diagnostics integration if a health endpoint is added later.
 
+The owner-only `.update` command now updates directly from the repository’s GitHub `main` branch. A Git checkout uses `git fetch` and a ZIP deployment automatically uses the public main-branch archive, so `UPDATE_ZIP_URL` is optional. The command installs JavaScript dependencies without blocking on optional native `sharp` scripts, reports completion in WhatsApp, and restarts the process for Katabump, panel, PM2, and VPS deployments.
+
 ## Dependency note
 
 The current feature set contains several legacy media and scraper packages. `npm audit` reports transitive vulnerabilities, including issues through `libsignal`, `sharp`, `request`, `ytdl-core`/scrapers, and older parser packages. They should be migrated in a dedicated compatibility pass rather than applying `npm audit fix --force`, which proposes breaking upgrades. Do not expose the bot to untrusted arbitrary code execution while legacy `.eval` functionality remains enabled; keep owner credentials private and consider removing that command for multi-operator deployments.

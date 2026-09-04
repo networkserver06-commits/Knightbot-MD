@@ -4,6 +4,7 @@ const path = require('path');
 const https = require('https');
 const settings = require('../settings');
 const isOwnerOrSudo = require('../lib/isOwner');
+const DEFAULT_UPDATE_ZIP_URL = 'https://github.com/networkserver06-commits/LEE-TECHBOT-MD/archive/refs/heads/main.zip';
 
 function run(cmd) {
     return new Promise((resolve, reject) => {
@@ -127,10 +128,7 @@ function copyRecursive(src, dest, ignore = [], relative = '', outList = []) {
 }
 
 async function updateViaZip(sock, chatId, message, zipOverride) {
-    const zipUrl = (zipOverride || settings.updateZipUrl || process.env.UPDATE_ZIP_URL || '').trim();
-    if (!zipUrl) {
-        throw new Error('No ZIP URL configured. Set settings.updateZipUrl or UPDATE_ZIP_URL env.');
-    }
+    const zipUrl = (zipOverride || settings.updateZipUrl || process.env.UPDATE_ZIP_URL || DEFAULT_UPDATE_ZIP_URL).trim();
     const tmpDir = path.join(process.cwd(), 'tmp');
     if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
     const zipPath = path.join(tmpDir, 'update.zip');
@@ -201,18 +199,24 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     try {
         // Minimal UX
         await sock.sendMessage(chatId, { text: '🔄 Updating the bot, please wait…' }, { quoted: message });
+        let updatedFromGit = false;
         if (await hasGitRepo()) {
-            // silent
-            const { oldRev, newRev, alreadyUpToDate, commits, files } = await updateViaGit();
-            // Short message only: version info
-            const summary = alreadyUpToDate ? `✅ Already up to date: ${newRev}` : `✅ Updated to ${newRev}`;
-            console.log('[update] summary generated');
-            // silent
-            await run('npm install --no-audit --no-fund');
-        } else {
-            const { copiedFiles } = await updateViaZip(sock, chatId, message, zipOverride);
-            // silent
+            try {
+                const { newRev, alreadyUpToDate } = await updateViaGit();
+                console.log(`[update] ${alreadyUpToDate ? 'already current' : 'updated'} at ${newRev}`);
+                updatedFromGit = true;
+            } catch (gitError) {
+                console.warn('[update] Git update unavailable; using GitHub ZIP fallback:', gitError.message || gitError);
+            }
         }
+        if (!updatedFromGit) {
+            await updateViaZip(sock, chatId, message, zipOverride);
+        }
+        // Ignore lifecycle scripts during WhatsApp-triggered updates. This
+        // keeps Termux/Katabump alive when optional native sharp binaries
+        // are unavailable; the core bot does not require sharp.
+        await run('npm install --no-audit --no-fund --ignore-scripts');
+        await run('npm rebuild sharp --foreground-scripts').catch(() => {});
         try {
             const v = require('../settings').version || '';
             await sock.sendMessage(chatId, { text: `✅ Update done. Restarting…` }, { quoted: message });
@@ -227,5 +231,3 @@ async function updateCommand(sock, chatId, message, zipOverride) {
 }
 
 module.exports = updateCommand;
-
-
