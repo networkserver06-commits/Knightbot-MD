@@ -50,6 +50,13 @@ for (const envPath of [...new Set(envCandidates)]) {
 const detectedEnvKeys = ['PHONE_NUMBER', 'PAIRING_NUMBER', 'AUTH_METHOD', 'PAIRING_CODE']
   .filter((key) => Object.prototype.hasOwnProperty.call(process.env, key));
 console.log(`[config] env files loaded: ${loadedEnvPaths.length ? loadedEnvPaths.join(', ') : 'none'}; pairing keys present: ${detectedEnvKeys.join(', ') || 'none'}`);
+// EAC is commonly used to mean East Africa; the correct IANA timezone is
+// Africa/Nairobi (EAT, UTC+03:00). Set Node's process timezone before any
+// modules create user-facing timestamps. TIME_ZONE/TIMEZONE remain optional
+// aliases, but default safely to East Africa.
+const timezone = process.env.TIME_ZONE || process.env.TIMEZONE || 'Africa/Nairobi';
+process.env.TZ = timezone;
+console.log(`[config] timezone: ${timezone} (East Africa is Africa/Nairobi / EAT)`);
 const cleanDigits = (value) => String(value || '').replace(/[^0-9]/g, '');
 const ownerNumber = cleanDigits(process.env.OWNER_NUMBER || '');
 module.exports = {
@@ -66,5 +73,6 @@ module.exports = {
   description: process.env.BOT_DESCRIPTION || 'A reliable, feature-rich WhatsApp assistant for groups and private chats.',
   version: process.env.BOT_VERSION || '2.0.0-premium',
   channelLink: process.env.CHANNEL_LINK || '',
-  updateZipUrl: process.env.UPDATE_ZIP_URL || ''
+  updateZipUrl: process.env.UPDATE_ZIP_URL || '',
+  timezone
 };
