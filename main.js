@@ -76,6 +76,7 @@ const { antiphotoCommand, checkAntiPhoto } = require('./commands/antiphoto');
 const { antiviewonceCommand, checkAntiViewOnce } = require('./commands/antiviewonce');
 const { antifakeCommand, checkFakeLinks } = require('./commands/antifake'); 
 const { antibotCommand, checkAntiBot } = require('./commands/antibot'); 
+const antiallCommand = require('./commands/antiall');
 const { handleAntiBadwordCommand, handleBadwordDetection } = require('./lib/antibadword');
 const { Antilink } = require('./lib/antilink'); 
 const { handleAntilinkCommand } = require('./commands/antilink'); // <== FIXED IMPORT PATH
@@ -330,10 +331,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
         // moderation checks, so they remain responsive on busy groups.
         const fastCommand = userMessage.split(/\s+/)[0];
         const fastPrefix = global.prefix === 'none' ? '.' : (global.prefix || '.');
-        const isFastCommand = userMessage.startsWith(fastPrefix) && ['.ping', '.help', '.menu', '.commands', '.devmenu', '.developermenu', '.tools', '.alive', '.system', '.stats', '.speed', '.uptime', '.runtime', '.id', '.botinfo', '.health'].includes(fastCommand);
+        const isFastCommand = userMessage.startsWith(fastPrefix) && ['.ping', '.help', '.menu', '.commands', '.devmenu', '.developermenu', '.devtools', '.tools', '.groupmenu', '.alive', '.system', '.stats', '.speed', '.uptime', '.runtime', '.id', '.botinfo', '.health'].includes(fastCommand);
         if (isFastCommand) {
             if (fastCommand === '.ping') await pingCommand(sock, chatId, message);
-            else if (fastCommand === '.help' || fastCommand === '.menu' || fastCommand === '.commands' || fastCommand === '.devmenu' || fastCommand === '.developermenu' || fastCommand === '.tools') await helpCommand(sock, chatId, message);
+            else if (fastCommand === '.help' || fastCommand === '.menu' || fastCommand === '.commands' || fastCommand === '.devmenu' || fastCommand === '.developermenu' || fastCommand === '.devtools' || fastCommand === '.tools' || fastCommand === '.groupmenu') await helpCommand(sock, chatId, message);
             else if (fastCommand === '.alive') await aliveCommand(sock, chatId, message);
             else if (fastCommand === '.speed') await speedCommand(sock, chatId, message);
             else if (fastCommand === '.uptime' || fastCommand === '.runtime') await uptimeCommand(sock, chatId, message);
@@ -626,6 +627,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 await antibotCommand(sock, chatId, message, isGroup, isSenderAdmin, isBotAdmin, isOwnerOrSudoCheck, userMessage);
                 commandExecuted = true;
                 break;
+            case commandToken === '.antiall':
+                await antiallCommand(sock, chatId, message, isGroup, isSenderAdmin, isBotAdmin, isOwnerOrSudoCheck, userMessage);
+                commandExecuted = true;
+                break;
 
             case userMessage.startsWith('.antifake'):
                 await antifakeCommand(sock, chatId, message, isGroup, isSenderAdmin, isBotAdmin, isOwnerOrSudoCheck, userMessage);
@@ -706,7 +711,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 await unbanCommand(sock, chatId, message);
                 commandExecuted = true;
                 break;
-            case userMessage === '.help' || userMessage === '.menu' || userMessage === '.commands' || userMessage === '.devmenu' || userMessage === '.developermenu' || userMessage === '.tools' || userMessage === '.bot' || userMessage === '.list':
+            case userMessage === '.help' || userMessage === '.menu' || userMessage === '.commands' || userMessage === '.devmenu' || userMessage === '.developermenu' || userMessage === '.devtools' || userMessage === '.tools' || userMessage === '.groupmenu' || userMessage === '.bot' || userMessage === '.list':
                 await helpCommand(sock, chatId, message, global.channelLink);
                 commandExecuted = true;
                 break;
