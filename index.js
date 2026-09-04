@@ -231,9 +231,18 @@ async function startXeonBotInc() {
 
         // Re-read panel variables here because some panel launchers inject
         // environment values after the module bootstrap phase.
-        const configuredPairingInput = process.env.PHONE_NUMBER || process.env.PAIRING_NUMBER || process.env.PAIRING_PHONE || process.env.WHATSAPP_NUMBER || process.env.WHATSAPP_PHONE || process.env.WA_NUMBER || process.env.BOT_PHONE_NUMBER || process.env.OWNER_NUMBER || (process.env.PAIRING_CODE !== 'true' && process.env.PAIRING_CODE !== 'false' ? process.env.PAIRING_CODE : '') || phoneNumber
+        const explicitPairingVariables = ['PHONE_NUMBER', 'PAIRING_NUMBER', 'PAIRING_PHONE', 'WHATSAPP_NUMBER', 'WHATSAPP_PHONE', 'WA_NUMBER', 'BOT_PHONE_NUMBER', 'OWNER_NUMBER']
+        const envPairingEntry = Object.entries(process.env).find(([key, value]) => {
+            if (!value || !/PHONE|WHATSAPP|PAIR|WA_NUMBER|BOT_NUMBER|OWNER_NUMBER|^NUMBER$/i.test(key)) return false
+            return Boolean(normalizeWhatsAppNumber(value))
+        })
+        const pairingEntry = explicitPairingVariables.map((key) => [key, process.env[key]])
+            .concat(envPairingEntry ? [envPairingEntry] : [])
+            .find(([, value]) => Boolean(normalizeWhatsAppNumber(value)))
+        const configuredPairingInput = pairingEntry?.[1] || (process.env.PAIRING_CODE !== 'true' && process.env.PAIRING_CODE !== 'false' ? process.env.PAIRING_CODE : '') || phoneNumber
         let requestedPhoneNumber = normalizeWhatsAppNumber(configuredPairingInput)
-        console.log(chalk.cyan(`Pairing configuration: number ${requestedPhoneNumber ? 'detected' : 'missing'}, console input ${rl.closed || process.stdin.readableEnded ? 'closed' : 'available'}`))
+        const detectedFrom = pairingEntry?.[0] || (requestedPhoneNumber ? 'bootstrap' : 'none')
+        console.log(chalk.cyan(`Pairing configuration: number ${requestedPhoneNumber ? 'detected' : 'missing'} (${detectedFrom}), console input ${rl.closed || process.stdin.readableEnded ? 'closed' : 'available'}`))
         do {
             if (!requestedPhoneNumber && (rl.closed || process.stdin.readableEnded)) {
                 throw Object.assign(new Error('Pairing input console is closed and no valid pairing number was detected'), { code: 'PAIRING_INPUT_CLOSED' })
