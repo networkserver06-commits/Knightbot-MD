@@ -78,6 +78,8 @@ Start the bot with `npm start`. If a saved session exists, it reconnects without
 
 If the Katabump console closes stdin, set `PHONE_NUMBER=254781231617` as a panel environment variable and fully restart/redeploy the application. The bot also accepts `PAIRING_NUMBER`, `PAIRING_PHONE`, `WHATSAPP_NUMBER`, `WHATSAPP_PHONE`, `WA_NUMBER`, `BOT_PHONE_NUMBER`, or `OWNER_NUMBER` as aliases. A numeric `PAIRING_CODE` is also accepted for legacy panel configurations, although `PAIRING_NUMBER` is preferred. The variable must be attached to the running service, not only saved in a local `.env` file. Startup logs report only `number detected` or `number missing`; they never print the number.
 
+If WhatsApp displays “Waiting for this message” and the console reports `Bad MAC`, `verifyMAC`, or “failed to decrypt,” the saved Signal session is stale or corrupted. The bot now skips that message without sending a misleading error reply, but cryptographic state cannot be repaired in place. Stop the bot, remove the contents of the configured `AUTH_DIR`, remove the old linked device in WhatsApp, and link again with a new pairing code. Run only one bot process against each `AUTH_DIR` and prefer an absolute Katabump path such as `/home/container/session`.
+
 To use QR instead, set `AUTH_METHOD=qr` and `PAIRING_CODE=false`. The linking-code prompt is never shown when a saved session already exists.
 
 ## AI chatbot

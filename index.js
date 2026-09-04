@@ -58,6 +58,26 @@ setInterval(() => store.writeToFile(), settings.storeWriteInterval || 10000)
 let reconnectAttempts = 0
 const connectionNoticePath = path.join(process.env.AUTH_DIR || './session', '.connection-notice.json')
 let hasAnnouncedConnection = Boolean(readJson(connectionNoticePath, {}).sent)
+const decryptWarningCache = new Map()
+
+function isSignalDecryptError(error) {
+    const text = String(error?.stack || error?.message || error || '').toLowerCase()
+    return /bad mac|verif(?:y|ication)mac|failed to decrypt|decrypt.*session|known session|signal.*session|waiting for this message/.test(text)
+}
+
+function logDecryptWarningOnce(messageId, error) {
+    const key = messageId || 'unknown'
+    const now = Date.now()
+    const previous = decryptWarningCache.get(key) || 0
+    if (now - previous < 60000) return
+    decryptWarningCache.set(key, now)
+    if (decryptWarningCache.size > 1000) {
+        for (const [id, timestamp] of decryptWarningCache) {
+            if (now - timestamp > 60000) decryptWarningCache.delete(id)
+        }
+    }
+    console.warn(`[crypto] message skipped because Signal could not decrypt it${error?.message ? `: ${error.message}` : ''}`)
+}
 
 // Memory optimization - Force garbage collection if available
 setInterval(() => {
@@ -165,6 +185,10 @@ async function startXeonBotInc() {
             try {
                 await handleMessages(XeonBotInc, chatUpdate, true)
             } catch (err) {
+                if (isSignalDecryptError(err)) {
+                    logDecryptWarningOnce(mek.key?.id, err)
+                    return
+                }
                 console.error("Error in handleMessages:", err)
                 // Only try to send error message if we have a valid chatId
                 if (mek.key && mek.key.remoteJid) {
