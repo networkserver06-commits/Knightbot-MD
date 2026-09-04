@@ -48,6 +48,7 @@ const { join } = require('path')
 // Import lightweight store
 const store = require('./lib/lightweight_store')
 const { ensureRuntimeDirs, readJson } = require('./lib/runtime')
+const { normalizeWhatsAppNumber } = require('./lib/phone')
 ensureRuntimeDirs()
 
 // Initialize store
@@ -75,7 +76,7 @@ setInterval(() => {
     }
 }, 30_000) // check every 30 seconds
 
-let phoneNumber = String(process.env.PHONE_NUMBER || '').replace(/[^0-9]/g, '')
+let phoneNumber = normalizeWhatsAppNumber(process.env.PHONE_NUMBER || '')
 let owner = readJson('./data/owner.json', { owner: settings.ownerNumber || '' })
 
 global.botname = "LEE TECH BOT"
@@ -229,10 +230,9 @@ async function startXeonBotInc() {
         let requestedPhoneNumber = ''
         do {
             requestedPhoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Enter WhatsApp phone number for pairing code:\nInclude country code digits, without +, spaces, or dashes.\nExample: 254116553618 or 254723456789\nNumber: `)))
-            // Clean the phone number - remove any non-digit characters.
-            requestedPhoneNumber = String(requestedPhoneNumber || '').replace(/[^0-9]/g, '')
-            if (requestedPhoneNumber.length < 10 || requestedPhoneNumber.length > 15) {
-                console.log(chalk.red('Please enter a valid 10-15 digit international number. Try again.'))
+            requestedPhoneNumber = normalizeWhatsAppNumber(requestedPhoneNumber)
+            if (!requestedPhoneNumber) {
+                console.log(chalk.red('Please enter the complete international number, for example 254781231617 or +254 781 231 617. Try again.'))
                 requestedPhoneNumber = ''
             }
         } while (!requestedPhoneNumber)

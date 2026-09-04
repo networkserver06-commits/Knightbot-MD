@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { normalizeWhatsAppNumber } = require('../lib/phone');
 
 // Fallback sleep function to guarantee it works without throwing import errors
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -29,11 +30,11 @@ const pairCommand = async (sock, chatId, message, args) => {
         }
 
         // Clean the number - remove +, spaces, dashes, etc.
-        const number = q.replace(/[^0-9]/g, '');
+        const number = normalizeWhatsAppNumber(q);
 
-        if (number.length < 10 || number.length > 15) {
+        if (!number) {
             return await sock.sendMessage(chatId, {
-                text: "❌ Invalid number! Please use the correct international format without '+' or spaces.",
+                text: "❌ Invalid number! Enter the complete international number, for example 254781231617 or +254 781 231 617.",
                 ...channelInfo
             }, { quoted: message });
         }
