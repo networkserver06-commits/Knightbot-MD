@@ -379,12 +379,12 @@ async function startXeonBotInc() {
 
     return XeonBotInc
     } catch (error) {
-        console.error('Error in startXeonBotInc:', error)
         if (error?.code === 'PAIRING_INPUT_CLOSED' || error?.code === 'ERR_USE_AFTER_CLOSE') {
-            console.error('Pairing prompt closed before a number was entered. Keep the Katabump console open and restart the server.')
+            console.error('Pairing input closed before a number was entered. Enable the Katabump console/terminal input and restart the server.')
             process.exitCode = 1
             return
         }
+        console.error('Error in startXeonBotInc:', error)
         await delay(5000)
         startXeonBotInc()
     }
