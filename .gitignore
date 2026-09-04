@@ -4,6 +4,7 @@ node_modules/
 # Runtime data
 tmp/
 temp/
+baileys_store.json
 
 # Session files
 session/

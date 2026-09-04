@@ -14,6 +14,7 @@ This release hardens the existing Baileys bot without removing its existing comm
 - **Premium AI chatbot:** `.chatbot on` can use any OpenAI-compatible provider through `AI_API_URL`, `AI_API_KEY`, and `AI_MODEL`, with timeout and bounded retry controls.
 - **Responsible anti-ban protection:** duplicate suppression, command throttling, bounded AI retries, and exponential reconnect backoff reduce accidental spam and connection churn. No bot can guarantee immunity from WhatsApp enforcement; use the official terms-compliant account and avoid bulk messaging.
 - **Privacy improved:** example owner and premium data files no longer contain personal phone numbers.
+- **Panel deployment optimized:** Katabump can use `npm run install:panel` for lockfile-based production installs and `npm run start:panel` for a bounded-memory production process; npm audit, funding, and progress overhead are disabled through `.npmrc`.
 
 ## Secure setup
 
@@ -25,9 +26,9 @@ This release hardens the existing Baileys bot without removing its existing comm
 6. Install and validate with:
 
 ```bash
-npm ci
+npm run install:panel
 npm run check
-npm start
+npm run start:panel
 ```
 
 The bot defaults to public mode and the `.` prefix. Change `BOT_MODE` and `PREFIX` in `.env` or use the bot’s owner settings where supported.
