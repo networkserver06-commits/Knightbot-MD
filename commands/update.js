@@ -1,4 +1,4 @@
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -173,18 +173,66 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
 }
 
 async function restartProcess(sock, chatId, message) {
-    try {
-        // Restart only this bot when PM2 is present. Set PM2_APP_NAME when the
-        // panel/process manager uses a custom application name.
-        const appName = process.env.PM2_APP_NAME || 'leetechbot';
-        await run(`pm2 restart "${appName.replace(/[^a-zA-Z0-9_.-]/g, '')}"`);
+    const restartMode = String(process.env.RESTART_MODE || 'auto').toLowerCase();
+    if (restartMode === 'none') {
+        console.log('[update] Restart disabled by RESTART_MODE=none');
         return;
-    } catch {}
-    // Panels usually auto-restart when the process exits.
-    // Exit after a short delay to allow the above message to flush.
-    setTimeout(() => {
-        process.exit(0);
-    }, 500);
+    }
+
+    if (process.env.RESTART_COMMAND) {
+        try {
+            await run(process.env.RESTART_COMMAND);
+            return;
+        } catch (error) {
+            console.warn('[update] RESTART_COMMAND failed:', error.message || error);
+        }
+    }
+
+    const isPanel = Boolean(
+        process.env.P_SERVER_UUID ||
+        process.env.PTERODACTYL_SERVER_UUID ||
+        process.env.KATABUMP_SERVER_ID ||
+        process.env.KATABUMP
+    );
+    const hasProcessSupervisor = Boolean(process.env.pm_id || process.env.PM2_HOME);
+
+    if (restartMode !== 'panel' && (hasProcessSupervisor || restartMode === 'pm2' || process.env.PM2_APP_NAME)) {
+        try {
+            const appName = process.env.PM2_APP_NAME || 'leetechbot';
+            await run(`pm2 restart "${appName.replace(/[^a-zA-Z0-9_.-]/g, '')}"`);
+            return;
+        } catch (error) {
+            console.warn('[update] PM2 restart unavailable:', error.message || error);
+            if (hasProcessSupervisor || restartMode === 'pm2') {
+                setTimeout(() => process.exit(0), 1200);
+                return;
+            }
+        }
+    }
+
+    // Pterodactyl/Katabump supervisors restart the container after a clean
+    // exit. Do not create a second child process inside the panel container.
+    if (restartMode === 'panel' || isPanel) {
+        setTimeout(() => process.exit(0), 1200);
+        return;
+    }
+
+    // For a plain VPS/host started directly with Node, replace the current
+    // process with a detached child so the bot comes back without a human.
+    try {
+        const entry = path.resolve(process.argv[1] || 'index.js');
+        const child = spawn(process.execPath, ['-e', `setTimeout(() => require(${JSON.stringify(entry)}), 1800)`], {
+            cwd: process.cwd(),
+            env: { ...process.env, BOT_RESTARTED_AFTER_UPDATE: '1' },
+            detached: true,
+            stdio: 'inherit'
+        });
+        child.unref();
+        setTimeout(() => process.exit(0), 1200);
+    } catch (error) {
+        console.error('[update] Self-restart failed; exiting for host supervisor:', error.message || error);
+        setTimeout(() => process.exit(0), 1200);
+    }
 }
 
 async function updateCommand(sock, chatId, message, zipOverride) {
