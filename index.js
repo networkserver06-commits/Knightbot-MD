@@ -231,10 +231,12 @@ async function startXeonBotInc() {
 
         // Re-read panel variables here because some panel launchers inject
         // environment values after the module bootstrap phase.
-        let requestedPhoneNumber = normalizeWhatsAppNumber(process.env.PHONE_NUMBER || process.env.PAIRING_NUMBER || phoneNumber)
+        const configuredPairingInput = process.env.PHONE_NUMBER || process.env.PAIRING_NUMBER || process.env.WHATSAPP_NUMBER || process.env.WA_NUMBER || phoneNumber
+        let requestedPhoneNumber = normalizeWhatsAppNumber(configuredPairingInput)
+        console.log(chalk.cyan(`Pairing configuration: number ${requestedPhoneNumber ? 'detected' : 'missing'}, console input ${rl.closed || process.stdin.readableEnded ? 'closed' : 'available'}`))
         do {
             if (!requestedPhoneNumber && (rl.closed || process.stdin.readableEnded)) {
-                throw Object.assign(new Error('Pairing input console is closed and PHONE_NUMBER/PAIRING_NUMBER is missing or invalid'), { code: 'PAIRING_INPUT_CLOSED' })
+                throw Object.assign(new Error('Pairing input console is closed and no valid pairing number was detected'), { code: 'PAIRING_INPUT_CLOSED' })
             }
             if (!requestedPhoneNumber) requestedPhoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Enter WhatsApp phone number for pairing code:\nInclude country code digits, without +, spaces, or dashes.\nExample: 254116553618 or 254723456789\nNumber: `)))
             requestedPhoneNumber = normalizeWhatsAppNumber(requestedPhoneNumber)
