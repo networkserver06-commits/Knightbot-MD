@@ -273,7 +273,16 @@ async function handleMessages(sock, messageUpdate, printLog) {
         // Handle button responses
         if (message.message?.buttonsResponseMessage) {
             const buttonId = message.message.buttonsResponseMessage.selectedButtonId;
-            if (buttonId === 'channel') {
+            const developerButtonCommands = {
+                tools_health: '.health',
+                tools_settings: '.settings',
+                tools_update: '.update'
+            };
+            if (developerButtonCommands[buttonId]) {
+                // Re-enter the normal router so existing owner checks remain
+                // authoritative for settings and update operations.
+                message.message = { conversation: developerButtonCommands[buttonId] };
+            } else if (buttonId === 'channel') {
                 return await sock.sendMessage(chatId, { text: '📢 *Join our Channel:*\nhttps://whatsapp.com/channel/0029VbBu1EgJUM2iVI3tPE0S' }, { quoted: message });
             } else if (buttonId === 'owner') {
                 return await ownerCommand(sock, chatId);

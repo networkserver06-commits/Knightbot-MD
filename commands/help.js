@@ -134,6 +134,14 @@ function messageText(message) {
     return message?.message?.conversation || message?.message?.extendedTextMessage?.text || '';
 }
 
+function developerButtons() {
+    return [
+        { buttonId: 'tools_health', buttonText: { displayText: '📡 Health' }, type: 1 },
+        { buttonId: 'tools_settings', buttonText: { displayText: '⚙️ Settings' }, type: 1 },
+        { buttonId: 'tools_update', buttonText: { displayText: '🔄 Update' }, type: 1 }
+    ];
+}
+
 function buildDetails(topic) {
     const p = global.prefix === 'none' ? '.' : (global.prefix || '.');
     const topics = {
@@ -164,6 +172,18 @@ async function helpCommand(sock, chatId, message) {
     };
 
     try {
+        if (['dev', 'developer', 'tools'].includes(requestedTopic)) {
+            try {
+                return await sock.sendMessage(chatId, {
+                    text: helpMessage,
+                    footer: 'LEE TECH Developer Toolkit',
+                    buttons: developerButtons(),
+                    headerType: 1
+                }, { quoted: message });
+            } catch (buttonError) {
+                console.warn('[menu] Inline buttons unavailable; using text fallback:', buttonError.message || buttonError);
+            }
+        }
         if (image) {
             return await sock.sendMessage(chatId, { image, caption: helpMessage, contextInfo }, { quoted: message });
         }
@@ -176,3 +196,5 @@ async function helpCommand(sock, chatId, message) {
 
 module.exports = helpCommand;
 module.exports.buildMenu = buildMenu;
+module.exports.buildDeveloperMenu = buildDeveloperMenu;
+module.exports.developerButtons = developerButtons;
