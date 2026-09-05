@@ -43,3 +43,4 @@ async function downloadCommand(sock, chatId, message) {
 
 module.exports = downloadCommand;
 module.exports.routeFor = routeFor;
+module.exports.extractUrl = extractUrl;

@@ -64,7 +64,8 @@ async function instagramCommand(sock, chatId, message) {
             /https?:\/\/(?:www\.)?instagram\.com\/tv\//
         ];
 
-        const isValidUrl = instagramPatterns.some(pattern => pattern.test(text));
+        const url = text.match(/https?:\/\/[^\s]+/i)?.[0]?.replace(/[),.!?]+$/, '') || '';
+        const isValidUrl = instagramPatterns.some(pattern => pattern.test(url));
         
         if (!isValidUrl) {
             return await sock.sendMessage(chatId, { 
@@ -76,7 +77,7 @@ async function instagramCommand(sock, chatId, message) {
             react: { text: '🔄', key: message.key }
         });
 
-        const downloadData = await igdl(text);
+        const downloadData = await igdl(url);
         
         if (!downloadData || !downloadData.data || downloadData.data.length === 0) {
             return await sock.sendMessage(chatId, { 

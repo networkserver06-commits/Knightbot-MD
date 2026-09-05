@@ -23,6 +23,14 @@ async function ownerCommand(sock, chatId, message) {
         }, { quoted: message });
     }
 
+    const visibleNumbers = contacts
+        .map((entry) => entry.vcard.match(/TEL;waid=([0-9]+)/)?.[1])
+        .filter(Boolean)
+        .map((number) => `+${number}`)
+        .join('\n');
+    await sock.sendMessage(chatId, {
+        text: `👤 *LEE TECH SUPPORT CONTACTS*\n\n${visibleNumbers}\n\nOwner and developer contacts are attached below.`
+    }, { quoted: message });
     return sock.sendMessage(chatId, {
         contacts: { displayName: 'LEE TECH BOT — Owner Support', contacts }
     }, { quoted: message });
