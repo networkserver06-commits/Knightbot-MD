@@ -29,7 +29,11 @@ async function downloadCommand(sock, chatId, message) {
         if (!handler) {
             return sock.sendMessage(chatId, { text: '❌ Supported platforms: YouTube, TikTok, Instagram, and Facebook. The link may also be private or region restricted.' }, { quoted: message });
         }
-        const routed = { ...message, message: { conversation: `${handler === videoCommand ? '.ytmp4' : '.download'} ${url}` } };
+        const command = handler === instagramCommand ? '.instagram'
+            : handler === facebookCommand ? '.facebook'
+                : handler === tiktokCommand ? '.tiktok'
+                    : '.ytmp4';
+        const routed = { ...message, message: { conversation: `${command} ${url}` } };
         return handler(sock, chatId, routed);
     } catch (error) {
         console.error('[download] route error:', error.message);
