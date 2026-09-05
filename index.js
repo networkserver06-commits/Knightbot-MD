@@ -298,16 +298,25 @@ async function startXeonBotInc() {
     // Connection handling
     XeonBotInc.ev.on('connection.update', async (s) => {
         const { connection, lastDisconnect, qr } = s
+
+        // A previous socket can emit delayed events during an update or
+        // reconnect handoff. Never let those events print a second banner or
+        // start another lifecycle action.
+        if (activeSocket !== XeonBotInc) return
         
         if (qr) {
             console.log(chalk.yellow('📱 QR Code generated. Please scan with WhatsApp.'))
         }
         
         if (connection === 'connecting') {
+            if (XeonBotInc.__connectingLogged) return
+            XeonBotInc.__connectingLogged = true
             console.log(chalk.yellow('🔄 Connecting to WhatsApp...'))
         }
         
         if (connection == "open") {
+            if (XeonBotInc.__connectionOpened) return
+            XeonBotInc.__connectionOpened = true
             if (reconnectTimer) {
                 clearTimeout(reconnectTimer)
                 reconnectTimer = null
