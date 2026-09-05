@@ -285,6 +285,9 @@ async function updateCommand(sock, chatId, message, zipOverride) {
             }, { quoted: message });
             return;
         }
+        await sock.sendMessage(chatId, {
+            text: `✅ *GitHub update applied successfully*\n\nSource: *${source}*\nRevision: *${revision}*\n\n📚 Now validating dependencies and optional modules. The bot will show a second confirmation when the full update is complete.`
+        }, { quoted: message }).catch(() => {});
         // Ignore lifecycle scripts during WhatsApp-triggered updates. This
         // keeps Termux/Katabump alive when optional native sharp binaries
         // are unavailable; the core bot does not require sharp.
