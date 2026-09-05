@@ -362,6 +362,18 @@ async function startXeonBotInc() {
             }
             const shouldReconnect = (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut
             const statusCode = lastDisconnect?.error?.output?.statusCode
+            const disconnectText = String(lastDisconnect?.error?.message || lastDisconnect?.error || '')
+            const isStreamConflict = statusCode === 440 || /stream errored.*conflict|conflict.*stream errored/i.test(disconnectText)
+
+            if (isStreamConflict) {
+                global.__conflictRestarting = true
+                console.error(chalk.red('WhatsApp stream conflict detected; stopping this process so the host can start one clean instance.'))
+                try {
+                    if (XeonBotInc?.ws && typeof XeonBotInc.ws.close === 'function') XeonBotInc.ws.close()
+                } catch (_) {}
+                setTimeout(() => process.exit(1), 1500)
+                return
+            }
             
             console.log(chalk.red(`Connection closed due to ${lastDisconnect?.error}, reconnecting ${shouldReconnect}`))
             
