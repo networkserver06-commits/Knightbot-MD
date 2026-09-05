@@ -56,6 +56,8 @@ store.readFromFile()
 const settings = require('./settings')
 setInterval(() => store.writeToFile(), settings.storeWriteInterval || 10000)
 let reconnectAttempts = 0
+let activeSocket = null
+let reconnectTimer = null
 const connectionNoticePath = path.join(process.env.AUTH_DIR || './session', '.connection-notice.json')
 let hasAnnouncedConnection = Boolean(readJson(connectionNoticePath, {}).sent)
 const decryptWarningCache = new Map()
@@ -152,6 +154,7 @@ async function startXeonBotInc() {
             connectTimeoutMs: 60000,
             keepAliveIntervalMs: 10000,
         })
+        activeSocket = XeonBotInc
 
         // Save credentials when they update
         XeonBotInc.ev.on('creds.update', saveCreds)
@@ -305,6 +308,10 @@ async function startXeonBotInc() {
         }
         
         if (connection == "open") {
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer)
+                reconnectTimer = null
+            }
             reconnectAttempts = 0
             console.log(chalk.magenta(` `))
             console.log(chalk.yellow(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
@@ -335,6 +342,11 @@ async function startXeonBotInc() {
         }
         
         if (connection === 'close') {
+            if (activeSocket !== XeonBotInc) {
+                console.log(chalk.yellow('Ignoring close event from a stale WhatsApp socket.'))
+                return
+            }
+            activeSocket = null
             if (global.__updateRestarting) {
                 console.log(chalk.yellow('Update restart requested; suppressing reconnect for the closing socket.'))
                 return
@@ -355,11 +367,15 @@ async function startXeonBotInc() {
             }
             
             if (shouldReconnect) {
+                if (reconnectTimer) return
                 reconnectAttempts += 1
                 const backoffMs = Math.min(60000, 5000 * (2 ** Math.min(reconnectAttempts - 1, 4)))
                 console.log(chalk.yellow(`Reconnecting in ${Math.ceil(backoffMs / 1000)}s (attempt ${reconnectAttempts})...`))
-                await delay(backoffMs)
-                startXeonBotInc()
+                reconnectTimer = setTimeout(async () => {
+                    reconnectTimer = null
+                    if (global.__updateRestarting || activeSocket) return
+                    await startXeonBotInc()
+                }, backoffMs)
             }
         }
     })

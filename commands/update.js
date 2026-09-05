@@ -175,8 +175,12 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
 async function restartProcess(sock, chatId, message) {
     global.__updateRestarting = true;
     try {
+        // Detach listeners before closing so the old process cannot schedule
+        // another reconnect during the update handoff.
+        if (sock?.ev && typeof sock.ev.removeAllListeners === 'function') sock.ev.removeAllListeners();
         // Stop Baileys reconnect listeners from competing with the new process.
         if (sock?.ws && typeof sock.ws.close === 'function') sock.ws.close();
+        if (sock?.end && typeof sock.end === 'function') sock.end(new Error('Update restart handoff'));
     } catch (error) {
         console.warn('[update] Socket close warning:', error.message || error);
     }
@@ -190,6 +194,7 @@ async function restartProcess(sock, chatId, message) {
     if (process.env.RESTART_COMMAND) {
         try {
             await run(process.env.RESTART_COMMAND);
+            setTimeout(() => process.exit(0), 1500);
             return;
         } catch (error) {
             console.warn('[update] RESTART_COMMAND failed:', error.message || error);
@@ -208,11 +213,12 @@ async function restartProcess(sock, chatId, message) {
         try {
             const appName = process.env.PM2_APP_NAME || 'leetechbot';
             await run(`pm2 restart "${appName.replace(/[^a-zA-Z0-9_.-]/g, '')}"`);
+            setTimeout(() => process.exit(0), 1500);
             return;
         } catch (error) {
             console.warn('[update] PM2 restart unavailable:', error.message || error);
             if (hasProcessSupervisor || restartMode === 'pm2') {
-                setTimeout(() => process.exit(0), 1200);
+                setTimeout(() => process.exit(0), 1800);
                 return;
             }
         }
@@ -221,7 +227,7 @@ async function restartProcess(sock, chatId, message) {
     // Pterodactyl/Katabump supervisors restart the container after a clean
     // exit. Do not create a second child process inside the panel container.
     if (restartMode === 'panel' || isPanel) {
-        setTimeout(() => process.exit(0), 1200);
+        setTimeout(() => process.exit(0), 1800);
         return;
     }
 
@@ -236,10 +242,10 @@ async function restartProcess(sock, chatId, message) {
             stdio: 'inherit'
         });
         child.unref();
-        setTimeout(() => process.exit(0), 1200);
+        setTimeout(() => process.exit(0), 1800);
     } catch (error) {
         console.error('[update] Self-restart failed; exiting for host supervisor:', error.message || error);
-        setTimeout(() => process.exit(0), 1200);
+        setTimeout(() => process.exit(0), 1800);
     }
 }
 
