@@ -260,6 +260,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     try {
         await sock.sendMessage(chatId, { text: '🔄 *Automatic update started*\nChecking GitHub main and preparing the bot…' }, { quoted: message });
         let updatedFromGit = false;
+        let alreadyCurrent = false;
         let source = 'GitHub main ZIP';
         let revision = 'main branch';
         if (await hasGitRepo()) {
@@ -267,6 +268,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
                 const { newRev, alreadyUpToDate } = await updateViaGit();
                 console.log(`[update] ${alreadyUpToDate ? 'already current' : 'updated'} at ${newRev}`);
                 updatedFromGit = true;
+                alreadyCurrent = alreadyUpToDate;
                 source = alreadyUpToDate ? 'GitHub main (already current)' : 'GitHub main (Git)';
                 revision = newRev.slice(0, 12);
             } catch (gitError) {
@@ -276,6 +278,12 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         if (!updatedFromGit) {
             await sock.sendMessage(chatId, { text: '📦 Downloading the latest GitHub main build…' }, { quoted: message }).catch(() => {});
             await updateViaZip(sock, chatId, message, zipOverride);
+        }
+        if (alreadyCurrent) {
+            await sock.sendMessage(chatId, {
+                text: `ℹ️ *No updates available*\n\nThe bot is already running the latest GitHub main revision.\nRevision: *${revision}*\n\n✅ No files changed.\n✅ Dependencies were not reinstalled.\n✅ Restart skipped to avoid disconnecting the active WhatsApp session.`
+            }, { quoted: message });
+            return;
         }
         // Ignore lifecycle scripts during WhatsApp-triggered updates. This
         // keeps Termux/Katabump alive when optional native sharp binaries
