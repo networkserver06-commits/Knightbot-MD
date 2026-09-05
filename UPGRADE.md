@@ -21,7 +21,7 @@ This release hardens the existing Baileys bot without removing its existing comm
 ## Secure setup
 
 1. Copy `.env.example` to `.env`.
-2. Set `OWNER_NUMBER` to the bot owner’s international number, digits only, and optionally set `SUPER_OWNER_NUMBER` for the developer/super-owner support contact. The `.owner` command sends both configured contacts as a WhatsApp contact card to the requester; these private values are intentionally not hardcoded into the public GitHub repository.
+2. Set `OWNER_NUMBER` to the bot owner’s international number, digits only. The developer/super-owner support number is fixed in `settings.js` as `254116553618`, does not use an environment variable, and is included automatically by `.owner`.
 3. Leave `PHONE_NUMBER` empty if you want the startup prompt. The default is linking-code login; use `AUTH_METHOD=qr` and `PAIRING_CODE=false` only for QR login.
 4. Add provider keys only for services you actually use.
 5. Keep the `session/` directory private and never commit it.
