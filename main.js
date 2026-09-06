@@ -546,14 +546,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 break;
 
             case commandToken === '.savestatus' || commandToken === '.statusdl': {
-                const quotedMsg = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-                const participant = message.message?.extendedTextMessage?.contextInfo?.participant;
-                if (!quotedMsg || !participant?.includes('status@broadcast')) {
-                    await sock.sendMessage(chatId, { text: 'Reply to a status update to save it.', ...channelInfo }, { quoted: message });
-                    break;
-                }
-                await sock.sendMessage(senderId, { forward: message.message.extendedTextMessage.contextInfo }, { quoted: message });
-                await sock.sendMessage(chatId, { text: 'Status sent to your DM.', ...channelInfo }, { quoted: message });
+                await savestatusCommand(sock, chatId, message, senderId);
                 commandExecuted = true;
                 break;
             }
