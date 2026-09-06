@@ -7,6 +7,41 @@ const settings = require('../settings');
 const menuImagePath = path.join(process.cwd(), 'menu.jpg');
 const menuSettingsPath = path.join(process.cwd(), 'data', 'menuSettings.json');
 
+const FONT_MAPS = {
+    clean: null,
+    bold: { upper: 0x1d400, lower: 0x1d41a },
+    double: { upper: 0x1d538, lower: 0x1d552 },
+    mono: { upper: 0x1d670, lower: 0x1d68a }
+};
+
+const STYLE_MAP = {
+    premium: { open: '╭─〔', close: '〕', bullet: '│', footer: '╰────────────────────' },
+    neon: { open: '┏━【', close: '】', bullet: '┃', footer: '┗━━━━━━━━━━━━━━━━━━━━' },
+    minimal: { open: '┌─', close: '─┐', bullet: '│', footer: '└────────────────┘' },
+    terminal: { open: '[', close: ']', bullet: '>', footer: '====================' },
+    royal: { open: '╔══〔', close: '〕', bullet: '║', footer: '╚════════════════════' }
+};
+
+function menuConfig() {
+    try {
+        const value = JSON.parse(fs.readFileSync(menuSettingsPath, 'utf8'));
+        return { enabled: value.enabled === true, style: value.style || 'premium', font: value.font || 'clean' };
+    } catch (_) {
+        return { enabled: false, style: 'premium', font: 'clean' };
+    }
+}
+
+function stylizeHeading(value, font) {
+    const map = FONT_MAPS[font];
+    if (!map) return value;
+    return String(value).replace(/[A-Za-z]/g, (char) => {
+        const code = char.charCodeAt(0);
+        const lower = code >= 97;
+        const base = lower ? map.lower : map.upper;
+        return String.fromCodePoint(base + (code - (lower ? 97 : 65)));
+    });
+}
+
 function menuImageEnabled() {
     try {
         const state = JSON.parse(fs.readFileSync(menuSettingsPath, 'utf8'));
@@ -26,10 +61,12 @@ function prefix() {
 }
 
 function section(title, lines) {
+    const config = menuConfig();
+    const style = STYLE_MAP[config.style] || STYLE_MAP.premium;
     return [
-        `╭─〔 *${title}* 〕`,
-        ...lines.map((line) => `│ ${line}`),
-        '╰────────────────────'
+        `${style.open} *${stylizeHeading(title, config.font)}* ${style.close}`,
+        ...lines.map((line) => `${style.bullet} ${line}`),
+        style.footer
     ].join('\n');
 }
 
@@ -101,6 +138,7 @@ function buildMenu() {
             `*${p}maintenance on/off*  •  *${p}autotyping*  •  *${p}autoread*`,
             `*${p}anticall*  •  *${p}backup*  •  *${p}cleartmp*  •  *${p}update*`,
             `Reply to an image: *${p}setmenuimage*  •  *${p}menumode image/text*`,
+            `*${p}menustyle neon*  •  *${p}menufont double*`,
             `*${p}devmenu*  — protected developer toolkit`
         ]),
         '',
@@ -136,7 +174,9 @@ function buildDeveloperMenu() {
             `*${p}setprefix <symbol|none>*`,
             `*${p}hidechannel on/off*`,
             `*${p}setmenuimage*  — replace and enable the menu image`,
-            `*${p}menumode image|text|status*  — switch display mode`
+            `*${p}menumode image|text|status*  — switch display mode`,
+            `*${p}menustyle premium|neon|minimal|terminal|royal*`,
+            `*${p}menufont clean|bold|double|mono*`
         ]),
         '',
         `Owner authorization is required for sensitive operations.`,

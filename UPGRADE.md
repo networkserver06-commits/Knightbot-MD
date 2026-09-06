@@ -96,3 +96,17 @@ The owner-only `.update` command now updates directly from the repository’s Gi
 ## Dependency note
 
 The current feature set contains several legacy media and scraper packages. `npm audit` reports transitive vulnerabilities, including issues through `libsignal`, `sharp`, `request`, `ytdl-core`/scrapers, and older parser packages. They should be migrated in a dedicated compatibility pass rather than applying `npm audit fix --force`, which proposes breaking upgrades. Do not expose the bot to untrusted arbitrary code execution while legacy `.eval` functionality remains enabled; keep owner credentials private and consider removing that command for multi-operator deployments.
+
+## Premium Text-Only Menu Styling
+
+The menu can remain fully text-only while using persistent border themes and heading fonts. These settings are stored in `data/menuSettings.json` and survive restarts.
+
+Owner commands:
+
+- `.menumode text` — disable the menu image and use text-only mode.
+- `.menustyle premium|neon|minimal|terminal|royal` — select the border and section design.
+- `.menustyle status` — show the active border theme.
+- `.menufont clean|bold|double|mono` — select the heading font treatment. Command lines remain normal text so they stay easy to copy and use.
+- `.menufont status` — show the active heading font.
+
+Recommended combinations include `neon` with `bold` for a high-contrast premium look, `terminal` with `mono` for a developer console style, and `minimal` with `clean` for maximum compatibility on older WhatsApp clients. If a font is not rendered by a particular client, switch back to `.menufont clean`; command functionality is unaffected.

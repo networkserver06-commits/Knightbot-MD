@@ -13,7 +13,11 @@ function readMenuSettings() {
 }
 
 function saveMenuSettings(settings) {
-    atomicWriteJson(menuSettingsPath, { enabled: Boolean(settings.enabled) });
+    atomicWriteJson(menuSettingsPath, {
+        enabled: Boolean(settings.enabled),
+        style: settings.style || 'premium',
+        font: settings.font || 'clean'
+    });
 }
 
 function commandText(message) {
@@ -31,7 +35,29 @@ async function setMenuImageCommand(sock, chatId, message, isOwnerOrSudoCheck) {
     }
 
     const argument = commandText(message).trim().split(/\s+/)[1]?.toLowerCase();
+    const command = commandText(message).trim().split(/\s+/)[0]?.toLowerCase();
     const current = readMenuSettings();
+
+    if (command === '.menustyle') {
+        const styles = ['premium', 'neon', 'minimal', 'terminal', 'royal'];
+        if (!argument || argument === 'status') {
+            return sock.sendMessage(chatId, { text: `🎛️ Menu style: *${current.style || 'premium'}*\nAvailable: ${styles.join(', ')}` }, { quoted: message });
+        }
+        if (!styles.includes(argument)) return sock.sendMessage(chatId, { text: `❌ Choose one style: ${styles.join(', ')}` }, { quoted: message });
+        saveMenuSettings({ ...current, style: argument });
+        return sock.sendMessage(chatId, { text: `✅ Menu border style changed to *${argument}*.` }, { quoted: message });
+    }
+
+    if (command === '.menufont') {
+        const fonts = ['clean', 'bold', 'double', 'mono'];
+        if (!argument || argument === 'status') {
+            return sock.sendMessage(chatId, { text: `🔤 Menu heading font: *${current.font || 'clean'}*\nAvailable: ${fonts.join(', ')}` }, { quoted: message });
+        }
+        if (!fonts.includes(argument)) return sock.sendMessage(chatId, { text: `❌ Choose one font: ${fonts.join(', ')}` }, { quoted: message });
+        saveMenuSettings({ ...current, font: argument });
+        return sock.sendMessage(chatId, { text: `✅ Menu heading font changed to *${argument}*.` }, { quoted: message });
+    }
+
     if (argument === 'on' || argument === 'image' || argument === 'off' || argument === 'text' || argument === 'status' || argument === 'none') {
         if (argument === 'status') {
             return sock.sendMessage(chatId, {
@@ -42,7 +68,7 @@ async function setMenuImageCommand(sock, chatId, message, isOwnerOrSudoCheck) {
         if (enabled && !fs.existsSync(menuImagePath)) {
             return sock.sendMessage(chatId, { text: '❌ No menu image is set. Reply to an image with *.setmenuimage* first.' }, { quoted: message });
         }
-        saveMenuSettings({ enabled });
+        saveMenuSettings({ ...current, enabled });
         return sock.sendMessage(chatId, {
             text: enabled
                 ? '✅ Menu image mode enabled. Use *.menu* to display the image menu.'
@@ -65,7 +91,7 @@ async function setMenuImageCommand(sock, chatId, message, isOwnerOrSudoCheck) {
         const buffer = Buffer.concat(chunks);
         if (buffer.length < 256) throw new Error('empty image');
         fs.writeFileSync(menuImagePath, buffer);
-        saveMenuSettings({ enabled: true });
+        saveMenuSettings({ ...current, enabled: true });
         return sock.sendMessage(chatId, {
             text: '✅ Menu image replaced and enabled.\nUse *.menumode text* any time to switch back to a text-only menu.'
         }, { quoted: message });
