@@ -110,3 +110,7 @@ Owner commands:
 - `.menufont status` — show the active heading font.
 
 Recommended combinations include `cyberpunk` with `bold` for a neon-terminal look, `neon` with `bold` for a high-contrast premium look, `terminal` with `mono` for a developer console style, and `minimal` with `clean` for maximum compatibility on older WhatsApp clients. If a font is not rendered by a particular client, switch back to `.menufont clean`; command functionality is unaffected.
+
+## Delayed duplicate-message protection
+
+Inbound WhatsApp message IDs are now deduplicated for 24 hours by default. This prevents a delayed redelivery after a message deletion, reconnect, or temporary stream interruption from entering the command router again and causing the bot to send the same text twice. Deployments can tune the window with `MESSAGE_DEDUPE_TTL_MS` when necessary.

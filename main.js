@@ -6,6 +6,10 @@ const { ensureRuntimeDirs, readJson, createMessageGuard, createHealthMetrics } =
 
 ensureRuntimeDirs();
 const messageGuard = createMessageGuard({
+    // WhatsApp can redeliver an older update after a delete, reconnect, or
+    // temporary stream interruption. Keep message IDs protected long enough
+    // that the command handler cannot send the same response again.
+    dedupeTtlMs: Number(process.env.MESSAGE_DEDUPE_TTL_MS || 24 * 60 * 60 * 1000),
     maxCommands: Number(process.env.COMMAND_RATE_LIMIT || 8),
     windowMs: Number(process.env.COMMAND_RATE_WINDOW_MS || 10000)
 });

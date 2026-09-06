@@ -61,6 +61,26 @@ let reconnectTimer = null
 const connectionNoticePath = path.join(process.env.AUTH_DIR || './session', '.connection-notice.json')
 let hasAnnouncedConnection = Boolean(readJson(connectionNoticePath, {}).sent)
 const decryptWarningCache = new Map()
+const deletedMessageKeys = new Map()
+const DELETED_KEY_TTL_MS = 24 * 60 * 60 * 1000
+
+function deletedKey(remoteJid, messageId) {
+    return `${remoteJid || ''}:${messageId || ''}`
+}
+
+function rememberDeletedMessage(remoteJid, messageId) {
+    if (!remoteJid || !messageId) return
+    const now = Date.now()
+    deletedMessageKeys.set(deletedKey(remoteJid, messageId), now)
+    for (const [key, timestamp] of deletedMessageKeys) {
+        if (now - timestamp > DELETED_KEY_TTL_MS) deletedMessageKeys.delete(key)
+    }
+}
+
+function wasDeletedMessage(remoteJid, messageId) {
+    const timestamp = deletedMessageKeys.get(deletedKey(remoteJid, messageId))
+    return Boolean(timestamp && Date.now() - timestamp <= DELETED_KEY_TTL_MS)
+}
 
 function isSignalDecryptError(error) {
     const text = String(error?.stack || error?.message || error || '').toLowerCase()
@@ -146,8 +166,12 @@ async function startXeonBotInc() {
             syncFullHistory: false,
             getMessage: async (key) => {
                 let jid = jidNormalizedUser(key.remoteJid)
+                // Never give Baileys the original payload for a message that
+                // WhatsApp has revoked; doing so can make an old bot text be
+                // retried and appear again after it was deleted.
+                if (wasDeletedMessage(jid, key.id)) return undefined
                 let msg = await store.loadMessage(jid, key.id)
-                return msg?.message || ""
+                return msg?.message || undefined
             },
             msgRetryCounterCache,
             defaultQueryTimeoutMs: 60000,
@@ -166,6 +190,10 @@ async function startXeonBotInc() {
         try {
             const mek = chatUpdate.messages[0]
             if (!mek.message) return
+            const protocol = mek.message.protocolMessage
+            if (protocol?.type === 0 && protocol.key?.id) {
+                rememberDeletedMessage(protocol.key.remoteJid || mek.key?.remoteJid, protocol.key.id)
+            }
             mek.message = (Object.keys(mek.message)[0] === 'ephemeralMessage') ? mek.message.ephemeralMessage.message : mek.message
             if (mek.key && mek.key.remoteJid === 'status@broadcast') {
                 await handleStatus(XeonBotInc, chatUpdate);
