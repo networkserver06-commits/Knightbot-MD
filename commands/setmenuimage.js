@@ -39,7 +39,7 @@ async function setMenuImageCommand(sock, chatId, message, isOwnerOrSudoCheck) {
     const current = readMenuSettings();
 
     if (command === '.menustyle') {
-        const styles = ['premium', 'neon', 'minimal', 'terminal', 'royal'];
+        const styles = ['premium', 'neon', 'cyberpunk', 'minimal', 'terminal', 'royal'];
         if (!argument || argument === 'status') {
             return sock.sendMessage(chatId, { text: `🎛️ Menu style: *${current.style || 'premium'}*\nAvailable: ${styles.join(', ')}` }, { quoted: message });
         }

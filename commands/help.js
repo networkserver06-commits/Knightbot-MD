@@ -17,6 +17,7 @@ const FONT_MAPS = {
 const STYLE_MAP = {
     premium: { open: '╭─〔', close: '〕', bullet: '│', footer: '╰────────────────────' },
     neon: { open: '┏━【', close: '】', bullet: '┃', footer: '┗━━━━━━━━━━━━━━━━━━━━' },
+    cyberpunk: { open: '⟦⟦', close: '⟧⟧', bullet: '▰', footer: '╞════════════════════╡' },
     minimal: { open: '┌─', close: '─┐', bullet: '│', footer: '└────────────────┘' },
     terminal: { open: '[', close: ']', bullet: '>', footer: '====================' },
     royal: { open: '╔══〔', close: '〕', bullet: '║', footer: '╚════════════════════' }
@@ -138,7 +139,7 @@ function buildMenu() {
             `*${p}maintenance on/off*  •  *${p}autotyping*  •  *${p}autoread*`,
             `*${p}anticall*  •  *${p}backup*  •  *${p}cleartmp*  •  *${p}update*`,
             `Reply to an image: *${p}setmenuimage*  •  *${p}menumode image/text*`,
-            `*${p}menustyle neon*  •  *${p}menufont double*`,
+            `*${p}menustyle cyberpunk*  •  *${p}menufont double*`,
             `*${p}devmenu*  — protected developer toolkit`
         ]),
         '',
@@ -175,7 +176,7 @@ function buildDeveloperMenu() {
             `*${p}hidechannel on/off*`,
             `*${p}setmenuimage*  — replace and enable the menu image`,
             `*${p}menumode image|text|status*  — switch display mode`,
-            `*${p}menustyle premium|neon|minimal|terminal|royal*`,
+            `*${p}menustyle premium|neon|cyberpunk|minimal|terminal|royal*`,
             `*${p}menufont clean|bold|double|mono*`
         ]),
         '',

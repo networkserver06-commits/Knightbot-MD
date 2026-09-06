@@ -109,4 +109,4 @@ Owner commands:
 - `.menufont clean|bold|double|mono` — select the heading font treatment. Command lines remain normal text so they stay easy to copy and use.
 - `.menufont status` — show the active heading font.
 
-Recommended combinations include `neon` with `bold` for a high-contrast premium look, `terminal` with `mono` for a developer console style, and `minimal` with `clean` for maximum compatibility on older WhatsApp clients. If a font is not rendered by a particular client, switch back to `.menufont clean`; command functionality is unaffected.
+Recommended combinations include `cyberpunk` with `bold` for a neon-terminal look, `neon` with `bold` for a high-contrast premium look, `terminal` with `mono` for a developer console style, and `minimal` with `clean` for maximum compatibility on older WhatsApp clients. If a font is not rendered by a particular client, switch back to `.menufont clean`; command functionality is unaffected.
